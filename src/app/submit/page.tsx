@@ -15,7 +15,7 @@ export default async function SubmitPage({
   const errorMessage = ERROR_MESSAGES[errorKey];
 
   return (
-    <div className="mx-auto w-full max-w-2xl px-6 py-12">
+    <div className="mx-auto w-full max-w-2xl px-4 py-8 sm:px-6 sm:py-12">
       <div className="mb-8 animate-fade-in-up">
         <Link
           href="/"

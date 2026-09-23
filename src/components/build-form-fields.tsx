@@ -8,6 +8,9 @@ import {
   DEFAULT_NETWORK_UNIT,
   DEFAULT_HOST_TYPE,
   SWAP_KINDS,
+  PRICE_PERIODS,
+  PRICE_PERIOD_LABELS,
+  DEFAULT_PRICE_PERIOD,
   type BuildRecord,
   type DiskSpec,
   type HostType,
@@ -28,7 +31,7 @@ const HOST_TYPE_OPTIONS: { value: HostType; label: string; hint: string }[] = [
 ];
 
 const inputClass =
-  "h-10 w-full rounded-md border bg-background px-3 text-sm outline-none transition-colors placeholder:text-muted focus:border-foreground";
+  "h-10 w-full rounded-md border bg-background px-3 text-base outline-none transition-colors placeholder:text-muted focus:border-foreground sm:text-sm";
 
 function Field({
   label,
@@ -134,13 +137,13 @@ function NetworkSpeedField({
           placeholder="e.g. 1"
           inputMode="numeric"
           defaultValue={speed ?? undefined}
-          className="h-full min-w-0 flex-1 bg-transparent px-3 text-sm outline-none placeholder:text-muted"
+          className="h-full min-w-0 flex-1 bg-transparent px-3 text-base outline-none placeholder:text-muted sm:text-sm"
         />
         <span className="my-2 w-px self-stretch bg-border" aria-hidden="true" />
         <select
           name="networkSpeedUnit"
           defaultValue={unit || DEFAULT_NETWORK_UNIT}
-          className="h-full shrink-0 rounded-r-md bg-transparent pl-2 pr-3 text-sm outline-none"
+          className="h-full shrink-0 rounded-r-md bg-transparent pl-2 pr-3 text-base outline-none sm:text-sm"
           aria-label="Network speed unit"
         >
           {NETWORK_UNITS.map((u) => (
@@ -152,6 +155,51 @@ function NetworkSpeedField({
       </div>
       <span className="text-xs text-muted">
         Port speed or measured throughput. Pick the matching unit.
+      </span>
+    </label>
+  );
+}
+
+function PriceField({
+  price,
+  period,
+}: {
+  price?: number | null;
+  period?: string;
+}) {
+  return (
+    <label className="flex flex-col gap-1.5">
+      <span className="text-sm font-medium">Price (USD)</span>
+      <div className="flex h-10 items-center rounded-md border bg-background transition-colors focus-within:border-foreground">
+        <span className="pl-3 text-base text-muted sm:text-sm" aria-hidden="true">
+          $
+        </span>
+        <input
+          name="priceUsd"
+          type="number"
+          min="0"
+          step="0.01"
+          placeholder="49.99"
+          inputMode="decimal"
+          defaultValue={price ?? undefined}
+          className="h-full min-w-0 flex-1 bg-transparent px-2 text-base outline-none placeholder:text-muted sm:text-sm"
+        />
+        <span className="my-2 w-px self-stretch bg-border" aria-hidden="true" />
+        <select
+          name="pricePeriod"
+          defaultValue={period || DEFAULT_PRICE_PERIOD}
+          className="h-full shrink-0 rounded-r-md bg-transparent pl-2 pr-3 text-base outline-none sm:text-sm"
+          aria-label="Billing period"
+        >
+          {PRICE_PERIODS.map((option) => (
+            <option key={option} value={option}>
+              {PRICE_PERIOD_LABELS[option]}
+            </option>
+          ))}
+        </select>
+      </div>
+      <span className="text-xs text-muted">
+        What the host bills you. Monthly is the default.
       </span>
     </label>
   );
@@ -412,15 +460,7 @@ export default function BuildFormFields({ build }: { build?: BuildRecord }) {
           className={`grid grid-cols-1 gap-4 ${isHost ? "sm:grid-cols-2" : ""}`}
         >
           {isHost ? (
-            <Field
-              label="Monthly price (USD)"
-              name="monthlyPriceUsd"
-              type="number"
-              step="0.01"
-              min="0"
-              placeholder="e.g. 49.99"
-              defaultValue={build?.monthlyPriceUsd ?? undefined}
-            />
+            <PriceField price={build?.priceUsd} period={build?.pricePeriod} />
           ) : null}
           <NetworkSpeedField
             speed={build?.networkSpeed}
@@ -563,7 +603,7 @@ export default function BuildFormFields({ build }: { build?: BuildRecord }) {
             maxLength={1000}
             placeholder="ccache enabled, clean build, etc."
             defaultValue={build?.notes}
-            className="rounded-md border bg-background px-3 py-2 text-sm outline-none transition-colors placeholder:text-muted focus:border-foreground"
+            className="rounded-md border bg-background px-3 py-2 text-base outline-none transition-colors placeholder:text-muted focus:border-foreground sm:text-sm"
           />
         </label>
       </fieldset>

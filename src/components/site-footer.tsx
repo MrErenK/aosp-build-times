@@ -15,9 +15,9 @@ function ColumnTitle({ children }: { children: React.ReactNode }) {
 export default function SiteFooter() {
   return (
     <footer className="mt-16 border-t bg-card/40">
-      <div className="w-full px-6 py-12 lg:px-8">
-        <div className="grid grid-cols-2 gap-8 sm:grid-cols-4">
-          <div className="col-span-2 sm:col-span-1">
+      <div className="w-full px-4 py-10 sm:px-6 sm:py-12 lg:px-8">
+        <div className="grid grid-cols-1 gap-8 sm:grid-cols-4">
+          <div>
             <div className="flex items-center gap-2.5 font-semibold tracking-tight">
               {SITE.name}
             </div>

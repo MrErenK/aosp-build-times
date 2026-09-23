@@ -25,7 +25,7 @@ export default function SubmittedToast() {
   if (!visible) return null;
 
   return (
-    <div className="pointer-events-none fixed inset-x-0 top-20 z-20 flex justify-center px-6">
+    <div className="pointer-events-none fixed inset-x-0 top-28 z-40 flex justify-center px-4 sm:top-20 sm:px-6">
       <div
         role="status"
         className="animate-toast-in pointer-events-auto flex items-center gap-3 rounded-md border bg-card px-4 py-3 text-sm shadow-sm"

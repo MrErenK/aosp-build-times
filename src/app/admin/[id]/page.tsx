@@ -30,7 +30,7 @@ export default async function AdminEditPage({
   const errorMessage = ERROR_MESSAGES[errorKey];
 
   return (
-    <div className="mx-auto w-full max-w-2xl px-6 py-12">
+    <div className="mx-auto w-full max-w-2xl px-4 py-8 sm:px-6 sm:py-12">
       <div className="animate-fade-in-up mb-8">
         <Link
           href="/admin"

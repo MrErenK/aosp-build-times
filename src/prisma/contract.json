@@ -142,13 +142,6 @@
                   "kind": "scalar"
                 }
               },
-              "monthlyPriceUsd": {
-                "nullable": true,
-                "type": {
-                  "codecId": "pg/float8@1",
-                  "kind": "scalar"
-                }
-              },
               "networkSpeed": {
                 "nullable": true,
                 "type": {
@@ -167,6 +160,20 @@
                 "nullable": false,
                 "type": {
                   "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "pricePeriod": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "priceUsd": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/float8@1",
                   "kind": "scalar"
                 }
               },
@@ -250,9 +257,6 @@
                 "memoryType": {
                   "column": "memoryType"
                 },
-                "monthlyPriceUsd": {
-                  "column": "monthlyPriceUsd"
-                },
                 "networkSpeed": {
                   "column": "networkSpeed"
                 },
@@ -261,6 +265,12 @@
                 },
                 "notes": {
                   "column": "notes"
+                },
+                "pricePeriod": {
+                  "column": "pricePeriod"
+                },
+                "priceUsd": {
+                  "column": "priceUsd"
                 },
                 "romName": {
                   "column": "romName"
@@ -426,11 +436,6 @@
                   "nativeType": "text",
                   "nullable": false
                 },
-                "monthlyPriceUsd": {
-                  "codecId": "pg/float8@1",
-                  "nativeType": "float8",
-                  "nullable": true
-                },
                 "networkSpeed": {
                   "codecId": "pg/float8@1",
                   "nativeType": "float8",
@@ -445,6 +450,16 @@
                   "codecId": "pg/text@1",
                   "nativeType": "text",
                   "nullable": false
+                },
+                "pricePeriod": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "priceUsd": {
+                  "codecId": "pg/float8@1",
+                  "nativeType": "float8",
+                  "nullable": true
                 },
                 "romName": {
                   "codecId": "pg/text@1",
@@ -477,7 +492,7 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "b44dd162d4f81b54c4feb848f82c2a3423a5b583476f291a94de57e215268f15"
+    "storageHash": "b37ada1cc61d39f7f316ec32cba4835ed38d3147512e66fab68a6b601ebdd9b2"
   },
   "capabilities": {
     "postgres": {

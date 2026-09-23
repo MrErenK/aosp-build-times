@@ -21,7 +21,7 @@ export default async function AdminLoginPage({
   const errorMessage = ERROR_MESSAGES[errorKey];
 
   return (
-    <div className="mx-auto w-full max-w-sm px-6 py-20">
+    <div className="mx-auto w-full max-w-sm px-4 py-16 sm:px-6 sm:py-20">
       <div className="animate-fade-in-up rounded-lg border bg-card p-6">
         <h1 className="text-xl font-semibold tracking-tight">Admin</h1>
         <p className="mt-2 text-sm text-muted">
@@ -51,7 +51,7 @@ export default async function AdminLoginPage({
                   type="password"
                   autoComplete="current-password"
                   required
-                  className="h-10 rounded-md border bg-background px-3 text-sm outline-none transition-colors focus:border-foreground"
+                  className="h-10 rounded-md border bg-background px-3 text-base outline-none transition-colors focus:border-foreground sm:text-sm"
                 />
               </label>
               <button

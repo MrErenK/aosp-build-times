@@ -21,7 +21,8 @@ model Build {
 
   hostType         String
   hostingProvider  String
-  monthlyPriceUsd  Float?
+  priceUsd         Float?
+  pricePeriod      String
   networkSpeed     Float?
   networkSpeedUnit String
 

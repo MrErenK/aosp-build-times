@@ -2,29 +2,16 @@ import Link from "next/link";
 import { getBuilds } from "@/lib/db";
 import {
   formatDisks,
+  formatDuration,
   formatHost,
   formatMemory,
   formatNetworkSpeed,
+  formatPrice,
   formatSwaps,
   type BuildRecord,
 } from "@/lib/types";
 import SubmittedToast from "@/components/submitted-toast";
-
-function formatDuration(minutes: number): string {
-  if (minutes < 60) return `${minutes} min`;
-  const h = Math.floor(minutes / 60);
-  const m = minutes % 60;
-  return m === 0 ? `${h} h` : `${h} h ${m} min`;
-}
-
-function StatCard({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-lg border bg-card p-5 transition-transform duration-200 hover:-translate-y-0.5">
-      <div className="text-2xl font-semibold tracking-tight">{value}</div>
-      <div className="mt-1 text-sm text-muted">{label}</div>
-    </div>
-  );
-}
+import StatCard from "@/components/stat-card";
 
 function BuildRow({ build }: { build: BuildRecord }) {
   const network = formatNetworkSpeed(build);
@@ -46,7 +33,10 @@ function BuildRow({ build }: { build: BuildRecord }) {
     build.kernelName !== "";
 
   return (
-    <div className="grid grid-cols-1 gap-4 border-b px-5 py-5 transition-colors duration-150 last:border-b-0 hover:bg-background sm:grid-cols-[1fr_auto] sm:items-center">
+    <Link
+      href={`/builds/${build.id}`}
+      className="group grid grid-cols-1 gap-4 border-b px-4 py-5 transition-colors duration-150 last:border-b-0 hover:bg-background sm:grid-cols-[1fr_auto] sm:items-center sm:px-5"
+    >
       <div className="min-w-0">
         <div className="flex flex-wrap items-baseline gap-x-2">
           <span className="font-medium">{build.romName}</span>
@@ -61,7 +51,7 @@ function BuildRow({ build }: { build: BuildRecord }) {
               .join(" · ")}
           </span>
         </div>
-        <div className="mt-1 truncate text-sm text-muted">
+        <div className="mt-1 text-sm break-words text-muted">
           {specs || "No hardware details provided"}
         </div>
         <div className="mt-2 flex flex-wrap gap-2 text-xs text-muted">
@@ -69,9 +59,7 @@ function BuildRow({ build }: { build: BuildRecord }) {
             {formatHost(build)}
           </span>
           <span className="rounded-full border px-2 py-0.5">
-            {build.monthlyPriceUsd !== null
-              ? `$${build.monthlyPriceUsd}/mo`
-              : "Price n/a"}
+            {formatPrice(build) || "Price n/a"}
           </span>
           {hasKernel ? (
             <span className="rounded-full border px-2 py-0.5">
@@ -88,19 +76,27 @@ function BuildRow({ build }: { build: BuildRecord }) {
           ) : null}
         </div>
       </div>
-      <div className="text-left sm:text-right">
-        <div className="font-mono text-lg font-semibold">
-          {formatDuration(build.buildMinutes)}
-        </div>
-        <div className="text-xs text-muted">clean build</div>
-        {build.dirtyBuildMinutes !== null ? (
-          <div className="mt-1 font-mono text-sm text-muted">
-            {formatDuration(build.dirtyBuildMinutes)}{" "}
-            <span className="font-sans text-xs">dirty</span>
+      <div className="flex items-end justify-between gap-4 border-t pt-3 sm:block sm:border-0 sm:pt-0 sm:text-right">
+        <div>
+          <div className="font-mono text-lg font-semibold">
+            {formatDuration(build.buildMinutes)}
           </div>
-        ) : null}
+          <div className="text-xs text-muted">clean build</div>
+          {build.dirtyBuildMinutes !== null ? (
+            <div className="mt-1 font-mono text-sm text-muted">
+              {formatDuration(build.dirtyBuildMinutes)}{" "}
+              <span className="font-sans text-xs">dirty</span>
+            </div>
+          ) : null}
+        </div>
+        <span
+          aria-hidden="true"
+          className="text-muted transition-transform duration-150 group-hover:translate-x-0.5 sm:hidden"
+        >
+          →
+        </span>
       </div>
-    </div>
+    </Link>
   );
 }
 
@@ -123,7 +119,7 @@ export default async function Home({ searchParams }: PageProps<"/">) {
       : 0;
 
   return (
-    <div className="w-full px-6 py-12 lg:px-8">
+    <div className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
       {justSubmitted ? <SubmittedToast /> : null}
 
       <section className="mb-10 animate-fade-in-up">
@@ -137,7 +133,7 @@ export default async function Home({ searchParams }: PageProps<"/">) {
         </p>
       </section>
 
-      <section className="stagger mb-10 grid grid-cols-2 gap-4 sm:grid-cols-3">
+      <section className="stagger mb-10 grid grid-cols-1 gap-4 sm:grid-cols-3">
         <StatCard label="Builds submitted" value={String(builds.length)} />
         <StatCard
           label="Average clean build"
@@ -150,8 +146,15 @@ export default async function Home({ searchParams }: PageProps<"/">) {
       </section>
 
       <section className="animate-fade-in-up">
-        <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-lg font-semibold tracking-tight">Recent builds</h2>
+        <div className="mb-4 flex flex-wrap items-end justify-between gap-2">
+          <div>
+            <h2 className="text-lg font-semibold tracking-tight">
+              Recent builds
+            </h2>
+            <p className="mt-1 text-sm text-muted">
+              Select a build for the full spec sheet.
+            </p>
+          </div>
           <Link
             href="/submit"
             className="text-sm text-muted underline-offset-4 hover:text-foreground hover:underline"

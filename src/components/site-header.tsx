@@ -28,38 +28,38 @@ export default function SiteHeader() {
 
   return (
     <header className="sticky top-0 z-30 border-b border-border/70 bg-background/70 backdrop-blur-md supports-backdrop-filter:bg-background/60">
-      <div className="flex h-16 w-full items-center justify-between gap-4 px-6 lg:px-8">
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3 sm:px-6 md:h-16 md:flex-nowrap md:gap-6 md:py-0 lg:px-8">
         <Link
           href="/"
           className="group flex min-w-0 items-center gap-2.5 font-semibold tracking-tight"
         >
-          <span className="truncate">{SITE.name}</span>
+          <span className="min-w-0">{SITE.name}</span>
         </Link>
 
-        <div className="flex items-center gap-1 sm:gap-2">
-          <nav className="flex items-center gap-1 text-sm">
-            {NAV.map((item) => {
-              const active =
-                item.href === "/"
-                  ? pathname === "/"
-                  : pathname.startsWith(item.href);
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  aria-current={active ? "page" : undefined}
-                  className={`rounded-md px-3 py-1.5 transition-colors ${
-                    active
-                      ? "bg-card font-medium text-foreground"
-                      : "text-muted hover:bg-card hover:text-foreground"
-                  }`}
-                >
-                  {item.label}
-                </Link>
-              );
-            })}
-          </nav>
+        <nav className="order-last flex w-full items-center gap-1 text-sm md:order-none md:ml-auto md:w-auto">
+          {NAV.map((item) => {
+            const active =
+              item.href === "/"
+                ? pathname === "/" || pathname.startsWith("/builds")
+                : pathname.startsWith(item.href);
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                aria-current={active ? "page" : undefined}
+                className={`rounded-md px-2.5 py-1.5 transition-colors sm:px-3 ${
+                  active
+                    ? "bg-card font-medium text-foreground"
+                    : "text-muted hover:bg-card hover:text-foreground"
+                }`}
+              >
+                {item.label}
+              </Link>
+            );
+          })}
+        </nav>
 
+        <div className="ml-auto flex items-center gap-1 sm:gap-2 md:ml-0">
           <a
             href={SITE.githubUrl}
             target="_blank"

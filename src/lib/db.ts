@@ -1,7 +1,12 @@
 import { randomUUID } from "crypto";
 import { db } from "@/prisma/db";
 import type { Models } from "@/prisma/contract";
-import type { BuildRecord, NewBuildRecord } from "@/lib/types";
+import {
+  DEFAULT_PRICE_PERIOD,
+  isPricePeriod,
+  type BuildRecord,
+  type NewBuildRecord,
+} from "@/lib/types";
 
 type BuildRow = Models.public_Build;
 
@@ -14,7 +19,10 @@ function toRecord(row: BuildRow): BuildRecord {
     androidVersion: row.androidVersion,
     hostType: row.hostType === "local" ? "local" : "host",
     hostingProvider: row.hostingProvider,
-    monthlyPriceUsd: row.monthlyPriceUsd,
+    priceUsd: row.priceUsd,
+    pricePeriod: isPricePeriod(row.pricePeriod)
+      ? row.pricePeriod
+      : DEFAULT_PRICE_PERIOD,
     networkSpeed: row.networkSpeed,
     networkSpeedUnit: row.networkSpeedUnit,
     cpuModel: row.cpuModel,

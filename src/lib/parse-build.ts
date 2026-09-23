@@ -6,6 +6,8 @@ import {
   HOST_TYPES,
   DEFAULT_HOST_TYPE,
   SWAP_KINDS,
+  PRICE_PERIODS,
+  DEFAULT_PRICE_PERIOD,
   type NewBuildRecord,
 } from "@/lib/types";
 
@@ -95,9 +97,12 @@ export function parseBuildForm(formData: FormData): NewBuildRecord | null {
     hostingProvider: isLocal
       ? ""
       : cleanString(formData.get("hostingProvider"), MAX_TEXT),
-    monthlyPriceUsd: isLocal
+    pricePeriod:
+      fromWhitelist(formData.get("pricePeriod"), PRICE_PERIODS) ||
+      DEFAULT_PRICE_PERIOD,
+    priceUsd: isLocal
       ? null
-      : toNumber(formData.get("monthlyPriceUsd"), {
+      : toNumber(formData.get("priceUsd"), {
           min: 0,
           max: 1_000_000,
         }),

@@ -18,6 +18,36 @@ export const LOCAL_HOST_LABEL = "Local machine";
 export const SWAP_KINDS = ["Swapfile", "ZRAM"] as const;
 export type SwapKind = (typeof SWAP_KINDS)[number];
 
+export const PRICE_PERIODS = ["hour", "day", "month", "year"] as const;
+export type PricePeriod = (typeof PRICE_PERIODS)[number];
+export const DEFAULT_PRICE_PERIOD: PricePeriod = "month";
+export const PRICE_PERIOD_LABELS: Record<PricePeriod, string> = {
+  hour: "Hour",
+  day: "Day",
+  month: "Month",
+  year: "Year",
+};
+
+export function isPricePeriod(value: string): value is PricePeriod {
+  return (PRICE_PERIODS as readonly string[]).includes(value);
+}
+
+const PRICE_PERIOD_SUFFIX: Record<PricePeriod, string> = {
+  hour: "/h",
+  day: "/day",
+  month: "/mo",
+  year: "/yr",
+};
+
+// Month lengths averaged out (730 hours, 365/12 days), so hourly, daily and
+// yearly prices can be compared.
+const MONTHS_PER_PERIOD: Record<PricePeriod, number> = {
+  hour: 730,
+  day: 365 / 12,
+  month: 1,
+  year: 1 / 12,
+};
+
 export type DiskSpec = {
   count: number | null;
   sizeGb: number | null;
@@ -39,7 +69,8 @@ export type BuildRecord = {
 
   hostType: HostType;
   hostingProvider: string;
-  monthlyPriceUsd: number | null;
+  priceUsd: number | null;
+  pricePeriod: PricePeriod;
   networkSpeed: number | null;
   networkSpeedUnit: string;
 
@@ -112,4 +143,30 @@ export function formatSwaps(swaps: SwapSpec[]): string {
 export function formatHost(build: BuildRecord): string {
   if (build.hostType === "local") return LOCAL_HOST_LABEL;
   return build.hostingProvider || "Unknown host";
+}
+
+export function formatDuration(minutes: number): string {
+  if (minutes < 60) return `${minutes} min`;
+  const h = Math.floor(minutes / 60);
+  const m = minutes % 60;
+  return m === 0 ? `${h} h` : `${h} h ${m} min`;
+}
+
+function formatAmount(value: number): string {
+  return value.toFixed(4).replace(/\.?0+$/, "");
+}
+
+export function formatPrice(
+  build: Pick<BuildRecord, "priceUsd" | "pricePeriod">
+): string {
+  if (build.priceUsd === null) return "";
+  return `$${formatAmount(build.priceUsd)}${PRICE_PERIOD_SUFFIX[build.pricePeriod]}`;
+}
+
+export function formatMonthlyPrice(
+  build: Pick<BuildRecord, "priceUsd" | "pricePeriod">
+): string {
+  if (build.priceUsd === null || build.pricePeriod === "month") return "";
+  const monthly = build.priceUsd * MONTHS_PER_PERIOD[build.pricePeriod];
+  return `$${monthly.toFixed(2)}/mo`;
 }

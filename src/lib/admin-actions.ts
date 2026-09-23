@@ -64,6 +64,7 @@ export async function adminUpdateBuild(formData: FormData): Promise<void> {
 
   revalidatePath("/");
   revalidatePath("/admin");
+  revalidatePath(`/builds/${id}`);
   redirect("/admin?done=updated");
 }
 
