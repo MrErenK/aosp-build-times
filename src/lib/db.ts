@@ -40,12 +40,12 @@ function toRecord(row: BuildRow): BuildRecord {
       count: disk.count,
       sizeGb: disk.sizeGb,
       type: disk.type,
+      raid: disk.raid,
     })),
     swaps: row.swaps.map((swap) => ({
       sizeGb: swap.sizeGb,
       kind: swap.kind,
     })),
-    raidStatus: row.raidStatus,
     buildMinutes: row.buildMinutes,
     dirtyBuildMinutes: row.dirtyBuildMinutes,
     kernelName: row.kernelName,

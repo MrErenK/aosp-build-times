@@ -19,9 +19,6 @@ function BuildRow({ build }: { build: BuildRecord }) {
     build.cpuThreads ? `${build.cpuThreads} threads` : null,
     formatMemory(build) || null,
     formatDisks(build.disks) || null,
-    build.raidStatus && build.raidStatus !== "None"
-      ? `Disk ${build.raidStatus}`
-      : null,
     formatSwaps(build.swaps) || null,
     formatRepo(build) || null,
     network ? `${network} network` : null,
@@ -53,7 +50,7 @@ function BuildRow({ build }: { build: BuildRecord }) {
               .join(" · ")}
           </span>
         </div>
-        <div className="mt-1 text-sm break-words text-muted">
+        <div className="mt-1 text-sm wrap-break-word text-muted">
           {specs || "No hardware details provided"}
         </div>
         <div className="mt-2 flex flex-wrap gap-2 text-xs text-muted">

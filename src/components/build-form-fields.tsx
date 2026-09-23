@@ -9,7 +9,7 @@ import {
   DEFAULT_HOST_TYPE,
   SWAP_KINDS,
   REPO_SYNC_MODES,
-  RAID_MODES,
+  raidOptionsFor,
   PRICE_PERIODS,
   PRICE_PERIOD_LABELS,
   DEFAULT_PRICE_PERIOD,
@@ -253,10 +253,20 @@ type RowField = {
   name: string;
   label: string;
   placeholder?: string;
-  options?: readonly string[];
+  options?: readonly string[] | ((rows: Row[]) => readonly string[]);
 };
 
 type Row = { key: number; values: (string | null)[] };
+
+function resolveOptions(
+  field: RowField | undefined,
+  rows: Row[]
+): readonly string[] | undefined {
+  if (!field?.options) return undefined;
+  return typeof field.options === "function"
+    ? field.options(rows)
+    : field.options;
+}
 
 function toRows(initial: (string | null)[][] | undefined, width: number): Row[] {
   const list = initial?.length ? initial : [Array<string | null>(width).fill(null)];
@@ -291,6 +301,13 @@ function RowList({
     );
   }
 
+  function fieldValue(field: RowField, value: string | null): string {
+    const current = value ?? "";
+    if (current === "") return "";
+    const options = resolveOptions(field, rows);
+    return !options || options.includes(current) ? current : "";
+  }
+
   return (
     <div className="flex flex-col gap-3">
       <span className="text-sm font-medium">{title}</span>
@@ -299,37 +316,40 @@ function RowList({
           key={row.key}
           className={`grid grid-cols-1 items-end gap-3 ${columns}`}
         >
-          {fields.map((field, index) => (
-            <label key={field.name} className="flex flex-col gap-1.5">
-              <span className="text-xs text-muted">{field.label}</span>
-              {field.options ? (
-                <select
-                  name={field.name}
-                  value={row.values[index] ?? ""}
-                  onChange={(event) => updateRow(row.key, index, event.target.value)}
-                  className={inputClass}
-                >
-                  <option value="">{field.placeholder}</option>
-                  {field.options.map((option) => (
-                    <option key={option} value={option}>
-                      {option}
-                    </option>
-                  ))}
-                </select>
-              ) : (
-                <input
-                  name={field.name}
-                  type="number"
-                  min="1"
-                  placeholder={field.placeholder}
-                  inputMode="numeric"
-                  value={row.values[index] ?? ""}
-                  onChange={(event) => updateRow(row.key, index, event.target.value)}
-                  className={inputClass}
-                />
-              )}
-            </label>
-          ))}
+          {fields.map((field, index) => {
+            const options = resolveOptions(field, rows);
+            return (
+              <label key={field.name} className="flex flex-col gap-1.5">
+                <span className="text-xs text-muted">{field.label}</span>
+                {options ? (
+                  <select
+                    name={field.name}
+                    value={fieldValue(field, row.values[index])}
+                    onChange={(event) => updateRow(row.key, index, event.target.value)}
+                    className={inputClass}
+                  >
+                    <option value="">{field.placeholder}</option>
+                    {options.map((option) => (
+                      <option key={option} value={option}>
+                        {option}
+                      </option>
+                    ))}
+                  </select>
+                ) : (
+                  <input
+                    name={field.name}
+                    type="number"
+                    min="1"
+                    placeholder={field.placeholder}
+                    inputMode="numeric"
+                    value={fieldValue(field, row.values[index])}
+                    onChange={(event) => updateRow(row.key, index, event.target.value)}
+                    className={inputClass}
+                  />
+                )}
+              </label>
+            );
+          })}
           <button
             type="button"
             onClick={() =>
@@ -365,8 +385,8 @@ function DiskFields({ disks }: { disks?: DiskSpec[] }) {
     <RowList
       title="Disks"
       addLabel="+ Add another disk"
-      columns="sm:grid-cols-[6rem_1fr_1fr_2.5rem]"
-      hint="One row per disk. Count is how many of them, e.g. 2 × 960 GB NVMe."
+      columns="sm:grid-cols-[5rem_1fr_1fr_1fr_2.5rem]"
+      hint="One row per disk. Count is how many of them, e.g. 2 × 960 GB NVMe, both in RAID 1. RAID levels appear once you have listed enough disks for them."
       fields={[
         { name: "diskCount", label: "Count", placeholder: "1" },
         { name: "diskSizeGb", label: "Size (GB)", placeholder: "960" },
@@ -376,11 +396,25 @@ function DiskFields({ disks }: { disks?: DiskSpec[] }) {
           placeholder: "Select disk type",
           options: DISK_TYPES,
         },
+        {
+          name: "diskRaid",
+          label: "RAID",
+          placeholder: "Optional",
+          options: (rows) =>
+            raidOptionsFor(
+              rows.reduce(
+                (sum, row) =>
+                  sum + Math.min(Math.max(Number(row.values[0]) || 1, 1), 64),
+                0
+              )
+            ),
+        },
       ]}
       initial={disks?.map((disk) => [
         disk.count === null ? null : String(disk.count),
         disk.sizeGb === null ? null : String(disk.sizeGb),
         disk.type || null,
+        disk.raid || null,
       ])}
     />
   );
@@ -544,14 +578,6 @@ export default function BuildFormFields({ build }: { build?: BuildRecord }) {
           />
         </div>
         <DiskFields disks={build?.disks} />
-        <SelectField
-          label="Disk RAID"
-          name="raidStatus"
-          options={RAID_MODES}
-          placeholder="Optional"
-          hint="Optional. Leave blank if you didn't check, or pick None for a single disk or JBOD."
-          defaultValue={build?.raidStatus}
-        />
         <SwapFields swaps={build?.swaps} />
       </fieldset>
 

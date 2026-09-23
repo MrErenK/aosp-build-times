@@ -4,6 +4,7 @@ type Disk {
   count  Float?
   sizeGb Float?
   type   String
+  raid   String
 }
 
 type Swap {
@@ -37,7 +38,6 @@ model Build {
   memorySpeedMhz Float?
   disks          Disk[]
   swaps          Swap[]
-  raidStatus     String
 
   buildMinutes      Float
   dirtyBuildMinutes Float?

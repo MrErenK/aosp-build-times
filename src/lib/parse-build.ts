@@ -10,6 +10,9 @@ import {
   RAID_MODES,
   PRICE_PERIODS,
   DEFAULT_PRICE_PERIOD,
+  diskTotal,
+  raidOptionsFor,
+  type DiskSpec,
   type NewBuildRecord,
 } from "@/lib/types";
 
@@ -51,16 +54,19 @@ type RowValues = {
   count: number | null;
   sizeGb: number | null;
   kind: string;
+  extra: string;
 };
 
 function parseRows(
   formData: FormData,
   prefix: string,
-  allowed: readonly string[]
+  allowed: readonly string[],
+  extra?: { name: string; allowed: readonly string[] }
 ): RowValues[] {
   const counts = formData.getAll(`${prefix}Count`);
   const sizes = formData.getAll(`${prefix}SizeGb`);
   const kinds = formData.getAll(`${prefix}Kind`);
+  const extras = extra ? formData.getAll(extra.name) : [];
 
   const rows: RowValues[] = [];
   for (let i = 0; i < sizes.length; i += 1) {
@@ -68,11 +74,36 @@ function parseRows(
       count: toNumber(counts[i] ?? null, { min: 1, max: 64 }),
       sizeGb: toNumber(sizes[i] ?? null, { min: 1, max: 1_000_000 }),
       kind: fromWhitelist(kinds[i] ?? null, allowed),
+      extra: extra ? fromWhitelist(extras[i] ?? null, extra.allowed) : "",
     };
-    if (row.count === null && row.sizeGb === null && row.kind === "") continue;
+    if (
+      row.count === null &&
+      row.sizeGb === null &&
+      row.kind === "" &&
+      row.extra === ""
+    ) {
+      continue;
+    }
     rows.push(row);
   }
   return rows;
+}
+
+function parseDisks(formData: FormData): DiskSpec[] {
+  const disks: DiskSpec[] = parseRows(formData, "disk", DISK_TYPES, {
+    name: "diskRaid",
+    allowed: RAID_MODES,
+  }).map(({ count, sizeGb, kind, extra }) => ({
+    count,
+    sizeGb,
+    type: kind,
+    raid: extra,
+  }));
+
+  const allowed = new Set<string>(raidOptionsFor(diskTotal(disks)));
+  return disks.map((disk) =>
+    disk.raid === "" || allowed.has(disk.raid) ? disk : { ...disk, raid: "" }
+  );
 }
 
 export function parseBuildForm(formData: FormData): NewBuildRecord | null {
@@ -129,14 +160,11 @@ export function parseBuildForm(formData: FormData): NewBuildRecord | null {
       min: 1,
       max: 100_000,
     }),
-    disks: parseRows(formData, "disk", DISK_TYPES).map(
-      ({ count, sizeGb, kind }) => ({ count, sizeGb, type: kind })
-    ),
+    disks: parseDisks(formData),
     swaps: parseRows(formData, "swap", SWAP_KINDS).map(({ sizeGb, kind }) => ({
       sizeGb,
       kind,
     })),
-    raidStatus: fromWhitelist(formData.get("raidStatus"), RAID_MODES),
     buildMinutes,
     dirtyBuildMinutes: toNumber(formData.get("dirtyBuildMinutes"), {
       min: 1,

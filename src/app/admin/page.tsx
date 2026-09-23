@@ -39,7 +39,6 @@ function summary(build: BuildRecord): string {
       formatMemory(build) || null,
       formatDisks(build.disks) || null,
       formatSwaps(build.swaps) || null,
-      build.raidStatus || null,
       formatRepo(build) || null,
       formatHost(build),
       formatPrice(build) || null,
@@ -107,7 +106,7 @@ export default async function AdminPage({ searchParams }: PageProps<"/admin">) {
                       : ""}
                   </span>
                 </div>
-                <div className="mt-1 text-sm break-words text-muted">
+                <div className="mt-1 text-sm wrap-break-word text-muted">
                   {summary(build)}
                 </div>
                 <div className="mt-1 font-mono text-xs text-muted">

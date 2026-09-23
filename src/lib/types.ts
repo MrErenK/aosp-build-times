@@ -26,6 +26,27 @@ export const RAID_MODES = [
   "RAID 6",
   "RAID 10",
 ] as const;
+export type RaidMode = (typeof RAID_MODES)[number];
+
+const RAID_MIN_DISKS: Record<string, number> = {
+  None: 1,
+  "RAID 0": 2,
+  "RAID 1": 2,
+  "RAID 5": 3,
+  "RAID 6": 4,
+  "RAID 10": 4,
+};
+
+export function diskTotal(disks: DiskSpec[]): number {
+  return disks.reduce((sum, disk) => sum + (disk.count ?? 1), 0);
+}
+
+export function raidOptionsFor(total: number): RaidMode[] {
+  return RAID_MODES.filter((mode) => {
+    if (total < RAID_MIN_DISKS[mode]) return false;
+    return mode !== "RAID 10" || total % 2 === 0;
+  });
+}
 
 export const PRICE_PERIODS = ["hour", "day", "month", "year"] as const;
 export type PricePeriod = (typeof PRICE_PERIODS)[number];
@@ -59,6 +80,7 @@ export type DiskSpec = {
   count: number | null;
   sizeGb: number | null;
   type: string;
+  raid: string;
 };
 
 export type SwapSpec = {
@@ -92,7 +114,6 @@ export type BuildRecord = {
   memorySpeedMhz: number | null;
   disks: DiskSpec[];
   swaps: SwapSpec[];
-  raidStatus: string;
 
   buildMinutes: number;
   dirtyBuildMinutes: number | null;
@@ -135,7 +156,8 @@ export function formatDisks(disks: DiskSpec[]): string {
     .map((disk) => {
       const size = disk.sizeGb === null ? "" : `${disk.sizeGb} GB`;
       const quantity = disk.count === null || disk.count === 1 ? "" : `${disk.count} × `;
-      return [quantity + size, disk.type].filter(Boolean).join(" ");
+      const raid = disk.raid && disk.raid !== "None" ? `(${disk.raid})` : "";
+      return [quantity + size, disk.type, raid].filter(Boolean).join(" ");
     })
     .filter(Boolean)
     .join(", ");

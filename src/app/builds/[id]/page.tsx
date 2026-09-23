@@ -42,7 +42,7 @@ function DetailSection({ title, rows }: { title: string; rows: Row[] }) {
             >
               <dt className="text-sm text-muted">{row.label}</dt>
               <dd
-                className={`text-sm font-medium break-words sm:text-right ${
+                className={`text-sm font-medium wrap-break-word sm:text-right ${
                   row.mono ? "font-mono" : ""
                 }`}
               >
@@ -110,7 +110,7 @@ export default async function BuildDetailPage(props: PageProps<"/builds/[id]">) 
 
       <div className="animate-fade-in-up mt-4 mb-8 flex flex-wrap items-start justify-between gap-4">
         <div className="min-w-0">
-          <h1 className="text-2xl font-semibold tracking-tight break-words sm:text-3xl">
+          <h1 className="text-2xl font-semibold tracking-tight wrap-break-word sm:text-3xl">
             {[build.romName, build.romVersion].filter(Boolean).join(" ")}
           </h1>
           <p className="mt-2 text-sm text-muted">
@@ -174,7 +174,6 @@ export default async function BuildDetailPage(props: PageProps<"/builds/[id]">) 
             },
             { label: "Memory", value: formatMemory(build) },
             { label: "Disks", value: formatDisks(build.disks) },
-            { label: "Disk RAID", value: build.raidStatus },
             { label: "Swap & zram", value: formatSwaps(build.swaps) },
           ]}
         />
@@ -220,7 +219,7 @@ export default async function BuildDetailPage(props: PageProps<"/builds/[id]">) 
             <h2 className="text-xs font-semibold uppercase tracking-wider text-muted">
               Notes
             </h2>
-            <p className="mt-3 text-sm break-words whitespace-pre-line">
+            <p className="mt-3 text-sm wrap-break-word whitespace-pre-line">
               {build.notes}
             </p>
           </section>

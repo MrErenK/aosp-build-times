@@ -177,13 +177,6 @@
                   "kind": "scalar"
                 }
               },
-              "raidStatus": {
-                "nullable": false,
-                "type": {
-                  "codecId": "pg/text@1",
-                  "kind": "scalar"
-                }
-              },
               "repoSyncMinutes": {
                 "nullable": true,
                 "type": {
@@ -293,9 +286,6 @@
                 "priceUsd": {
                   "column": "priceUsd"
                 },
-                "raidStatus": {
-                  "column": "raidStatus"
-                },
                 "repoSyncMinutes": {
                   "column": "repoSyncMinutes"
                 },
@@ -324,6 +314,13 @@
                 "nullable": true,
                 "type": {
                   "codecId": "pg/float8@1",
+                  "kind": "scalar"
+                }
+              },
+              "raid": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
                   "kind": "scalar"
                 }
               },
@@ -491,11 +488,6 @@
                   "nativeType": "float8",
                   "nullable": true
                 },
-                "raidStatus": {
-                  "codecId": "pg/text@1",
-                  "nativeType": "text",
-                  "nullable": false
-                },
                 "repoSyncMinutes": {
                   "codecId": "pg/float8@1",
                   "nativeType": "float8",
@@ -537,7 +529,7 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "a77b3687b9dc2b8b6757714c4c9a74abcb90331a534b8b68cac88b1cde0de170"
+    "storageHash": "f5d3f775ca3b5e09b16a1f521f6af8973c22947fe5d86da72f2f9839b128c8c6"
   },
   "capabilities": {
     "postgres": {
