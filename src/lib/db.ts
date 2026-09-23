@@ -1,117 +1,79 @@
-import { promises as fs } from "fs";
-import path from "path";
 import { randomUUID } from "crypto";
-import { DEFAULT_NETWORK_UNIT, type BuildRecord, type NewBuildRecord } from "./types";
+import { db } from "@/prisma/db";
+import type { Models } from "@/prisma/contract";
+import type { BuildRecord, NewBuildRecord } from "@/lib/types";
 
-// Simple JSON-file backed store. Good enough for a placeholder site and
-// avoids native dependencies. Data lives in <project root>/data/builds.json.
-const DATA_DIR = path.join(process.cwd(), "data");
-const DATA_FILE = path.join(DATA_DIR, "builds.json");
+type BuildRow = Models.public_Build;
 
-async function ensureFile(): Promise<void> {
-  await fs.mkdir(DATA_DIR, { recursive: true });
-  try {
-    await fs.access(DATA_FILE);
-  } catch {
-    await fs.writeFile(DATA_FILE, "[]", "utf8");
-  }
-}
-
-// Records written before the network/kernel fields existed are missing keys.
-// Fill them in on read so the rest of the app can assume a complete shape.
-function normalize(raw: Partial<BuildRecord> & { networkPortSpeed?: string }): BuildRecord {
-  const legacySpeed =
-    raw.networkSpeed === undefined && typeof raw.networkPortSpeed === "string"
-      ? Number(raw.networkPortSpeed.replace(/[^0-9.]/g, ""))
-      : null;
-
+function toRecord(row: BuildRow): BuildRecord {
   return {
-    id: raw.id ?? randomUUID(),
-    createdAt: raw.createdAt ?? new Date(0).toISOString(),
-    romName: raw.romName ?? "",
-    romVersion: raw.romVersion ?? "",
-    androidVersion: raw.androidVersion ?? null,
-    hostingProvider: raw.hostingProvider ?? "",
-    monthlyPriceUsd: raw.monthlyPriceUsd ?? null,
-    networkSpeed:
-      raw.networkSpeed ?? (Number.isFinite(legacySpeed) ? legacySpeed : null),
-    networkSpeedUnit: raw.networkSpeedUnit ?? DEFAULT_NETWORK_UNIT,
-    cpuModel: raw.cpuModel ?? "",
-    cpuCores: raw.cpuCores ?? null,
-    memoryGb: raw.memoryGb ?? null,
-    memoryType: raw.memoryType ?? "",
-    diskGb: raw.diskGb ?? null,
-    diskType: raw.diskType ?? "",
-    buildMinutes: raw.buildMinutes ?? 0,
-    dirtyBuildMinutes: raw.dirtyBuildMinutes ?? null,
-    kernelName: raw.kernelName ?? "",
-    kernelVersion: raw.kernelVersion ?? "",
-    kernelBuildMinutes: raw.kernelBuildMinutes ?? null,
-    kernelDirtyBuildMinutes: raw.kernelDirtyBuildMinutes ?? null,
-    notes: raw.notes ?? "",
+    id: row.id,
+    createdAt: new Date(row.createdAt).toISOString(),
+    romName: row.romName,
+    romVersion: row.romVersion,
+    androidVersion: row.androidVersion,
+    hostType: row.hostType === "local" ? "local" : "host",
+    hostingProvider: row.hostingProvider,
+    monthlyPriceUsd: row.monthlyPriceUsd,
+    networkSpeed: row.networkSpeed,
+    networkSpeedUnit: row.networkSpeedUnit,
+    cpuModel: row.cpuModel,
+    cpuCores: row.cpuCores,
+    cpuThreads: row.cpuThreads,
+    memoryGb: row.memoryGb,
+    memoryType: row.memoryType,
+    memorySpeedMhz: row.memorySpeedMhz,
+    disks: row.disks.map((disk) => ({
+      count: disk.count,
+      sizeGb: disk.sizeGb,
+      type: disk.type,
+    })),
+    swaps: row.swaps.map((swap) => ({
+      sizeGb: swap.sizeGb,
+      kind: swap.kind,
+    })),
+    buildMinutes: row.buildMinutes,
+    dirtyBuildMinutes: row.dirtyBuildMinutes,
+    kernelName: row.kernelName,
+    kernelVersion: row.kernelVersion,
+    kernelBuildMinutes: row.kernelBuildMinutes,
+    kernelDirtyBuildMinutes: row.kernelDirtyBuildMinutes,
+    notes: row.notes,
   };
-}
-
-async function readAll(): Promise<BuildRecord[]> {
-  await ensureFile();
-  const raw = await fs.readFile(DATA_FILE, "utf8");
-  try {
-    const parsed = JSON.parse(raw);
-    if (!Array.isArray(parsed)) return [];
-    return parsed.map(normalize);
-  } catch {
-    return [];
-  }
-}
-
-async function writeAll(builds: BuildRecord[]): Promise<void> {
-  await fs.writeFile(DATA_FILE, JSON.stringify(builds, null, 2), "utf8");
 }
 
 export async function getBuilds(): Promise<BuildRecord[]> {
-  const builds = await readAll();
-  // Newest first
-  return builds.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+  const rows = await db.orm.public.Build.orderBy((b) => b.createdAt.desc()).all();
+  return rows.map(toRecord);
 }
 
 export async function getBuild(id: string): Promise<BuildRecord | null> {
-  const builds = await readAll();
-  return builds.find((b) => b.id === id) ?? null;
+  const row = await db.orm.public.Build.first({ id });
+  return row ? toRecord(row) : null;
 }
 
 export async function addBuild(input: NewBuildRecord): Promise<BuildRecord> {
-  const builds = await readAll();
-  const record: BuildRecord = {
+  const row = await db.orm.public.Build.create({
     id: randomUUID(),
     createdAt: new Date().toISOString(),
     ...input,
-  };
-  builds.push(record);
-  await writeAll(builds);
-  return record;
+  });
+  return toRecord(row);
 }
 
 export async function updateBuild(
   id: string,
   input: NewBuildRecord
 ): Promise<BuildRecord | null> {
-  const builds = await readAll();
-  const index = builds.findIndex((b) => b.id === id);
-  if (index === -1) return null;
-  const record: BuildRecord = {
-    id: builds[index].id,
-    createdAt: builds[index].createdAt,
-    ...input,
-  };
-  builds[index] = record;
-  await writeAll(builds);
-  return record;
+  const row = await db.orm.public.Build.where({ id }).update(input);
+  return row ? toRecord(row) : null;
 }
 
 export async function deleteBuild(id: string): Promise<boolean> {
-  const builds = await readAll();
-  const remaining = builds.filter((b) => b.id !== id);
-  if (remaining.length === builds.length) return false;
-  await writeAll(remaining);
-  return true;
+  const plan = db.sql.public.build
+    .delete()
+    .where((f, fns) => fns.eq(f.id, id))
+    .build();
+  const { affectedRows } = await db.runtime().execute(plan);
+  return affectedRows > 0;
 }

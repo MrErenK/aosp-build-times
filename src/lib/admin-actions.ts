@@ -12,8 +12,8 @@ import {
 } from "@/lib/admin-auth";
 import { rateLimit, sweepExpired } from "@/lib/rate-limit";
 
-const LOGIN_LIMIT = 5; // attempts
-const LOGIN_WINDOW_MS = 5 * 60_000; // per 5 minutes
+const LOGIN_LIMIT = 5;
+const LOGIN_WINDOW_MS = 5 * 60_000;
 
 async function requireAdmin(): Promise<void> {
   if (!(await isAdmin())) {

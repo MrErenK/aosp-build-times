@@ -1,13 +1,15 @@
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { adminLogin } from "@/lib/admin-actions";
 import { isAdmin, isAdminConfigured } from "@/lib/admin-auth";
+import { SITE } from "@/lib/site";
 
 const ERROR_MESSAGES: Record<string, string> = {
   invalid: "Wrong password.",
   rate: "Too many attempts. Please wait a few minutes and try again.",
 };
 
-export const metadata = { title: "Admin login - ROM Build Bench" };
+export const metadata: Metadata = { title: `Admin login - ${SITE.name}` };
 
 export default async function AdminLoginPage({
   searchParams,

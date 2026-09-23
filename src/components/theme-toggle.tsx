@@ -11,8 +11,6 @@ function apply(theme: Theme) {
   else if (theme === "dark") root.add("dark");
 }
 
-// Read/subscribe to the persisted theme via an external store so there is no
-// setState-in-effect and hydration is handled by useSyncExternalStore.
 function subscribe(onChange: () => void) {
   window.addEventListener("storage", onChange);
   window.addEventListener("themechange", onChange);
@@ -87,8 +85,6 @@ const OPTIONS: { value: Theme; label: string; Icon: typeof SunIcon }[] = [
 ];
 
 export default function ThemeToggle() {
-  // `null` server snapshot => nothing is highlighted until the client resolves
-  // the real value, avoiding a hydration mismatch.
   const theme = useSyncExternalStore(subscribe, getSnapshot, () => null);
 
   function choose(next: Theme) {

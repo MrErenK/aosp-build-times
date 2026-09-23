@@ -1,10 +1,20 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { adminDeleteBuild, adminLogout } from "@/lib/admin-actions";
 import { isAdmin } from "@/lib/admin-auth";
 import { getBuilds } from "@/lib/db";
-import { formatNetworkSpeed, type BuildRecord } from "@/lib/types";
+import {
+  formatDisks,
+  formatHost,
+  formatMemory,
+  formatNetworkSpeed,
+  formatSwaps,
+  type BuildRecord,
+} from "@/lib/types";
 import DeleteBuildButton from "@/components/delete-build-button";
+import FlashMessage from "@/components/flash-message";
+import { SITE } from "@/lib/site";
 
 const MESSAGES: Record<string, string> = {
   updated: "Entry updated.",
@@ -15,15 +25,18 @@ const ERROR_MESSAGES: Record<string, string> = {
   notfound: "That entry no longer exists.",
 };
 
-export const metadata = { title: "Admin - ROM Build Bench" };
+export const metadata: Metadata = { title: `Admin - ${SITE.name}` };
 
 function summary(build: BuildRecord): string {
   return (
     [
       build.cpuModel,
       build.cpuCores ? `${build.cpuCores} cores` : null,
-      build.memoryGb ? `${build.memoryGb} GB RAM` : null,
-      build.hostingProvider,
+      build.cpuThreads ? `${build.cpuThreads} threads` : null,
+      formatMemory(build) || null,
+      formatDisks(build.disks) || null,
+      formatSwaps(build.swaps) || null,
+      formatHost(build),
       formatNetworkSpeed(build),
     ]
       .filter(Boolean)
@@ -38,10 +51,11 @@ export default async function AdminPage({ searchParams }: PageProps<"/admin">) {
   const builds = await getBuilds();
   const doneKey = typeof params?.done === "string" ? params.done : "";
   const errorKey = typeof params?.error === "string" ? params.error : "";
-  const banner = MESSAGES[doneKey] ?? ERROR_MESSAGES[errorKey];
+  const doneMessage = MESSAGES[doneKey];
+  const banner = doneMessage ?? ERROR_MESSAGES[errorKey];
 
   return (
-    <div className="mx-auto w-full max-w-5xl px-6 py-12">
+    <div className="w-full px-6 py-12 lg:px-8">
       <div className="animate-fade-in-up mb-8 flex flex-wrap items-end justify-between gap-4">
         <div>
           <h1 className="text-3xl font-semibold tracking-tight">Admin</h1>
@@ -61,9 +75,7 @@ export default async function AdminPage({ searchParams }: PageProps<"/admin">) {
       </div>
 
       {banner ? (
-        <div className="animate-fade-in-up mb-6 rounded-md border bg-card px-4 py-3 text-sm">
-          {banner}
-        </div>
+        <FlashMessage message={banner} param={doneMessage ? "done" : "error"} />
       ) : null}
 
       {builds.length === 0 ? (

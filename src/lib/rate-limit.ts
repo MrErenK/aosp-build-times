@@ -1,6 +1,5 @@
-// Minimal in-memory fixed-window rate limiter.
-// Suitable for a single-instance placeholder app (no external deps).
-// For multi-instance/prod, swap this for a shared store (e.g. Redis).
+// In-memory fixed-window rate limiter. Fits a single-instance app; swap for a
+// shared store (e.g. Redis) if this ever runs multi-instance.
 
 type Window = { count: number; resetAt: number };
 
@@ -38,7 +37,6 @@ export function rateLimit(
   };
 }
 
-// Opportunistically drop expired buckets so the map doesn't grow unbounded.
 export function sweepExpired(): void {
   const now = Date.now();
   for (const [key, win] of buckets) {

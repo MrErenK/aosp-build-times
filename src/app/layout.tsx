@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import SiteHeader from "@/components/site-header";
 import SiteFooter from "@/components/site-footer";
+import { SITE } from "@/lib/site";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -15,7 +16,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "ROM Build Bench",
+  title: SITE.name,
   description:
     "A community database of Android ROM build times across different server specs.",
 };
@@ -29,8 +30,6 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     >
       <head>
         <script
-          // Apply the saved theme before paint to avoid a flash of the wrong
-          // colors. "system" stores nothing and defers to prefers-color-scheme.
           dangerouslySetInnerHTML={{
             __html: `try{var t=localStorage.getItem('theme');var c=document.documentElement.classList;c.remove('light','dark');if(t==='light'){c.add('light')}else if(t==='dark'){c.add('dark')}}catch(e){}`,
           }}

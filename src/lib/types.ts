@@ -10,34 +10,51 @@ export const NETWORK_UNITS = ["Mbit/s", "Gbit/s", "MB/s", "GB/s"] as const;
 export type NetworkUnit = (typeof NETWORK_UNITS)[number];
 export const DEFAULT_NETWORK_UNIT: NetworkUnit = "Gbit/s";
 
+export const HOST_TYPES = ["host", "local"] as const;
+export type HostType = (typeof HOST_TYPES)[number];
+export const DEFAULT_HOST_TYPE: HostType = "host";
+export const LOCAL_HOST_LABEL = "Local machine";
+
+export const SWAP_KINDS = ["Swapfile", "ZRAM"] as const;
+export type SwapKind = (typeof SWAP_KINDS)[number];
+
+export type DiskSpec = {
+  count: number | null;
+  sizeGb: number | null;
+  type: string;
+};
+
+export type SwapSpec = {
+  sizeGb: number | null;
+  kind: string;
+};
+
 export type BuildRecord = {
   id: string;
   createdAt: string;
 
-  // ROM being built
   romName: string;
   romVersion: string;
   androidVersion: number | null;
 
-  // Server / hosting information
+  hostType: HostType;
   hostingProvider: string;
   monthlyPriceUsd: number | null;
   networkSpeed: number | null;
   networkSpeedUnit: string;
 
-  // Hardware
   cpuModel: string;
   cpuCores: number | null;
+  cpuThreads: number | null;
   memoryGb: number | null;
   memoryType: string;
-  diskGb: number | null;
-  diskType: string;
+  memorySpeedMhz: number | null;
+  disks: DiskSpec[];
+  swaps: SwapSpec[];
 
-  // Build result
   buildMinutes: number;
   dirtyBuildMinutes: number | null;
 
-  // Optional kernel build result
   kernelName: string;
   kernelVersion: string;
   kernelBuildMinutes: number | null;
@@ -51,4 +68,48 @@ export type NewBuildRecord = Omit<BuildRecord, "id" | "createdAt">;
 export function formatNetworkSpeed(build: BuildRecord): string {
   if (build.networkSpeed === null) return "";
   return `${build.networkSpeed} ${build.networkSpeedUnit || DEFAULT_NETWORK_UNIT}`;
+}
+
+export function formatMemory(build: BuildRecord): string {
+  if (
+    build.memoryGb === null &&
+    build.memoryType === "" &&
+    build.memorySpeedMhz === null
+  ) {
+    return "";
+  }
+  const capacity = build.memoryGb === null ? "" : `${build.memoryGb} GB`;
+  const speed =
+    build.memorySpeedMhz === null ? "" : `${build.memorySpeedMhz} MHz`;
+  const kind =
+    build.memoryType && speed
+      ? `${build.memoryType}-${build.memorySpeedMhz}`
+      : build.memoryType || speed;
+  return [capacity, kind, "RAM"].filter(Boolean).join(" ");
+}
+
+export function formatDisks(disks: DiskSpec[]): string {
+  return disks
+    .map((disk) => {
+      const size = disk.sizeGb === null ? "" : `${disk.sizeGb} GB`;
+      const quantity = disk.count === null || disk.count === 1 ? "" : `${disk.count} × `;
+      return [quantity + size, disk.type].filter(Boolean).join(" ");
+    })
+    .filter(Boolean)
+    .join(", ");
+}
+
+export function formatSwaps(swaps: SwapSpec[]): string {
+  return swaps
+    .map((swap) => {
+      const size = swap.sizeGb === null ? "" : `${swap.sizeGb} GB`;
+      return [size, swap.kind].filter(Boolean).join(" ");
+    })
+    .filter(Boolean)
+    .join(", ");
+}
+
+export function formatHost(build: BuildRecord): string {
+  if (build.hostType === "local") return LOCAL_HOST_LABEL;
+  return build.hostingProvider || "Unknown host";
 }

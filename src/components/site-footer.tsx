@@ -15,13 +15,10 @@ function ColumnTitle({ children }: { children: React.ReactNode }) {
 export default function SiteFooter() {
   return (
     <footer className="mt-16 border-t bg-card/40">
-      <div className="mx-auto w-full max-w-5xl px-6 py-12">
+      <div className="w-full px-6 py-12 lg:px-8">
         <div className="grid grid-cols-2 gap-8 sm:grid-cols-4">
           <div className="col-span-2 sm:col-span-1">
             <div className="flex items-center gap-2.5 font-semibold tracking-tight">
-              <span className="flex h-7 w-7 items-center justify-center rounded-md border bg-card">
-                <span className="h-2.5 w-2.5 rounded-sm bg-foreground" />
-              </span>
               {SITE.name}
             </div>
             <p className="mt-3 max-w-xs text-sm text-muted">{SITE.tagline}</p>

@@ -27,15 +27,12 @@ export default function SiteHeader() {
   const pathname = usePathname();
 
   return (
-    <header className="sticky top-0 z-30 border-b border-border/70 bg-background/70 backdrop-blur-md supports-[backdrop-filter]:bg-background/60">
-      <div className="mx-auto flex h-16 w-full max-w-5xl items-center justify-between gap-4 px-6">
+    <header className="sticky top-0 z-30 border-b border-border/70 bg-background/70 backdrop-blur-md supports-backdrop-filter:bg-background/60">
+      <div className="flex h-16 w-full items-center justify-between gap-4 px-6 lg:px-8">
         <Link
           href="/"
           className="group flex min-w-0 items-center gap-2.5 font-semibold tracking-tight"
         >
-          <span className="relative flex h-7 w-7 shrink-0 items-center justify-center rounded-md border bg-card">
-            <span className="h-2.5 w-2.5 rounded-sm bg-foreground transition-transform duration-300 group-hover:rotate-45" />
-          </span>
           <span className="truncate">{SITE.name}</span>
         </Link>
 

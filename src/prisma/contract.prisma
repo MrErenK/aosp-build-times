@@ -1,0 +1,46 @@
+// use prisma-8
+
+type Disk {
+  count  Float?
+  sizeGb Float?
+  type   String
+}
+
+type Swap {
+  sizeGb Float?
+  kind   String
+}
+
+model Build {
+  id        String            @id
+  createdAt TimestamptzString @default(now())
+
+  romName        String
+  romVersion     String
+  androidVersion Float?
+
+  hostType         String
+  hostingProvider  String
+  monthlyPriceUsd  Float?
+  networkSpeed     Float?
+  networkSpeedUnit String
+
+  cpuModel       String
+  cpuCores       Float?
+  cpuThreads     Float?
+  memoryGb       Float?
+  memoryType     String
+  memorySpeedMhz Float?
+  disks          Disk[]
+  swaps          Swap[]
+
+  buildMinutes      Float
+  dirtyBuildMinutes Float?
+
+  kernelName              String
+  kernelVersion           String
+  kernelBuildMinutes      Float?
+  kernelDirtyBuildMinutes Float?
+
+  notes String
+}

@@ -1,10 +1,31 @@
+"use client";
+
+import { useRef, useState } from "react";
 import {
   DISK_TYPES,
   MEMORY_TYPES,
   NETWORK_UNITS,
   DEFAULT_NETWORK_UNIT,
+  DEFAULT_HOST_TYPE,
+  SWAP_KINDS,
   type BuildRecord,
+  type DiskSpec,
+  type HostType,
+  type SwapSpec,
 } from "@/lib/types";
+
+const HOST_TYPE_OPTIONS: { value: HostType; label: string; hint: string }[] = [
+  {
+    value: "host",
+    label: "Hosting provider",
+    hint: "A server you rent from Hetzner, AWS, Oracle and friends.",
+  },
+  {
+    value: "local",
+    label: "Local PC / server",
+    hint: "Your own PC, homelab or a dedicated box you own.",
+  },
+];
 
 const inputClass =
   "h-10 w-full rounded-md border bg-background px-3 text-sm outline-none transition-colors placeholder:text-muted focus:border-foreground";
@@ -94,9 +115,6 @@ function SectionTitle({ children }: { children: React.ReactNode }) {
   );
 }
 
-// Network speed is a number plus a unit, because hosts advertise ports in
-// Mbit/s or Gbit/s while some people measure real throughput in MB/s.
-// Rendered as one combined control so it reads as a single field.
 function NetworkSpeedField({
   speed,
   unit,
@@ -133,13 +151,221 @@ function NetworkSpeedField({
         </select>
       </div>
       <span className="text-xs text-muted">
-        Port speed or measured throughput - pick the matching unit.
+        Port speed or measured throughput. Pick the matching unit.
       </span>
     </label>
   );
 }
 
+function HostTypeSwitch({
+  value,
+  onChange,
+}: {
+  value: HostType;
+  onChange: (next: HostType) => void;
+}) {
+  const active = HOST_TYPE_OPTIONS.find((opt) => opt.value === value)!;
+
+  return (
+    <div className="flex flex-col gap-1.5">
+      <span className="text-sm font-medium">Where do you build?</span>
+      <div className="grid w-full grid-cols-2 gap-1 rounded-md border bg-background p-1 sm:w-fit">
+        {HOST_TYPE_OPTIONS.map((opt) => {
+          const selected = opt.value === value;
+          return (
+            <label
+              key={opt.value}
+              className={`cursor-pointer rounded px-3 py-1.5 text-center text-sm transition-colors ${
+                selected
+                  ? "bg-foreground font-medium text-background"
+                  : "text-muted hover:bg-card hover:text-foreground"
+              }`}
+            >
+              <input
+                type="radio"
+                name="hostType"
+                value={opt.value}
+                checked={selected}
+                onChange={() => onChange(opt.value)}
+                className="sr-only"
+              />
+              {opt.label}
+            </label>
+          );
+        })}
+      </div>
+      <span className="text-xs text-muted">{active.hint}</span>
+    </div>
+  );
+}
+
+type RowField = {
+  name: string;
+  label: string;
+  placeholder?: string;
+  options?: readonly string[];
+};
+
+type Row = { key: number; values: (string | null)[] };
+
+function toRows(initial: (string | null)[][] | undefined, width: number): Row[] {
+  const list = initial?.length ? initial : [Array<string | null>(width).fill(null)];
+  return list.map((values, index) => ({ key: index, values }));
+}
+
+function RowList({
+  title,
+  hint,
+  addLabel,
+  columns,
+  fields,
+  initial,
+}: {
+  title: string;
+  hint: string;
+  addLabel: string;
+  columns: string;
+  fields: RowField[];
+  initial?: (string | null)[][];
+}) {
+  const [rows, setRows] = useState<Row[]>(() => toRows(initial, fields.length));
+  const nextKey = useRef(rows.length);
+
+  function updateRow(key: number, index: number, value: string) {
+    setRows((current) =>
+      current.map((row) =>
+        row.key === key
+          ? { ...row, values: row.values.map((item, i) => (i === index ? value : item)) }
+          : row
+      )
+    );
+  }
+
+  return (
+    <div className="flex flex-col gap-3">
+      <span className="text-sm font-medium">{title}</span>
+      {rows.map((row) => (
+        <div
+          key={row.key}
+          className={`grid grid-cols-1 items-end gap-3 ${columns}`}
+        >
+          {fields.map((field, index) => (
+            <label key={field.name} className="flex flex-col gap-1.5">
+              <span className="text-xs text-muted">{field.label}</span>
+              {field.options ? (
+                <select
+                  name={field.name}
+                  value={row.values[index] ?? ""}
+                  onChange={(event) => updateRow(row.key, index, event.target.value)}
+                  className={inputClass}
+                >
+                  <option value="">{field.placeholder}</option>
+                  {field.options.map((option) => (
+                    <option key={option} value={option}>
+                      {option}
+                    </option>
+                  ))}
+                </select>
+              ) : (
+                <input
+                  name={field.name}
+                  type="number"
+                  min="1"
+                  placeholder={field.placeholder}
+                  inputMode="numeric"
+                  value={row.values[index] ?? ""}
+                  onChange={(event) => updateRow(row.key, index, event.target.value)}
+                  className={inputClass}
+                />
+              )}
+            </label>
+          ))}
+          <button
+            type="button"
+            onClick={() =>
+              setRows((current) => current.filter((item) => item.key !== row.key))
+            }
+            disabled={rows.length === 1}
+            aria-label="Remove row"
+            className="h-10 rounded-md border text-sm text-muted transition-colors hover:text-foreground disabled:opacity-40 disabled:hover:text-muted"
+          >
+            ✕
+          </button>
+        </div>
+      ))}
+      <button
+        type="button"
+        onClick={() =>
+          setRows((current) => [
+            ...current,
+            { key: nextKey.current++, values: Array<string | null>(fields.length).fill(null) },
+          ])
+        }
+        className="h-10 w-fit rounded-md border px-4 text-sm font-medium transition-colors hover:bg-background"
+      >
+        {addLabel}
+      </button>
+      <span className="text-xs text-muted">{hint}</span>
+    </div>
+  );
+}
+
+function DiskFields({ disks }: { disks?: DiskSpec[] }) {
+  return (
+    <RowList
+      title="Disks"
+      addLabel="+ Add another disk"
+      columns="sm:grid-cols-[6rem_1fr_1fr_2.5rem]"
+      hint="One row per disk. Count is how many of them, e.g. 2 × 960 GB NVMe."
+      fields={[
+        { name: "diskCount", label: "Count", placeholder: "1" },
+        { name: "diskSizeGb", label: "Size (GB)", placeholder: "960" },
+        {
+          name: "diskKind",
+          label: "Type",
+          placeholder: "Select disk type",
+          options: DISK_TYPES,
+        },
+      ]}
+      initial={disks?.map((disk) => [
+        disk.count === null ? null : String(disk.count),
+        disk.sizeGb === null ? null : String(disk.sizeGb),
+        disk.type || null,
+      ])}
+    />
+  );
+}
+
+function SwapFields({ swaps }: { swaps?: SwapSpec[] }) {
+  return (
+    <RowList
+      title="Swap & zram"
+      addLabel="+ Add swapfile or zram"
+      columns="sm:grid-cols-[1fr_1fr_2.5rem]"
+      hint="Optional. Add a row per device — a swapfile and zram can both be present."
+      fields={[
+        { name: "swapSizeGb", label: "Size (GB)", placeholder: "8" },
+        {
+          name: "swapKind",
+          label: "Kind",
+          placeholder: "Select kind",
+          options: SWAP_KINDS,
+        },
+      ]}
+      initial={swaps?.map((swap) => [
+        swap.sizeGb === null ? null : String(swap.sizeGb),
+        swap.kind || null,
+      ])}
+    />
+  );
+}
+
 export default function BuildFormFields({ build }: { build?: BuildRecord }) {
+  const [hostType, setHostType] = useState<HostType>(
+    build?.hostType ?? DEFAULT_HOST_TYPE
+  );
+  const isHost = hostType === "host";
+
   return (
     <>
       <fieldset className="flex flex-col gap-4">
@@ -155,7 +381,7 @@ export default function BuildFormFields({ build }: { build?: BuildRecord }) {
           <Field
             label="ROM version"
             name="romVersion"
-            placeholder="e.g. 21"
+            placeholder="e.g. 23.2"
             defaultValue={build?.romVersion}
           />
           <Field
@@ -164,7 +390,7 @@ export default function BuildFormFields({ build }: { build?: BuildRecord }) {
             type="number"
             min="1"
             max="100"
-            placeholder="e.g. 14"
+            placeholder="e.g. 16"
             hint="Number only."
             defaultValue={build?.androidVersion ?? undefined}
           />
@@ -173,22 +399,29 @@ export default function BuildFormFields({ build }: { build?: BuildRecord }) {
 
       <fieldset className="flex flex-col gap-4">
         <SectionTitle>Server &amp; hosting</SectionTitle>
-        <Field
-          label="Hosting provider"
-          name="hostingProvider"
-          placeholder="e.g. Hetzner, AWS, self-hosted"
-          defaultValue={build?.hostingProvider}
-        />
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <HostTypeSwitch value={hostType} onChange={setHostType} />
+        {isHost ? (
           <Field
-            label="Monthly price (USD)"
-            name="monthlyPriceUsd"
-            type="number"
-            step="0.01"
-            min="0"
-            placeholder="e.g. 49.99"
-            defaultValue={build?.monthlyPriceUsd ?? undefined}
+            label="Hosting provider"
+            name="hostingProvider"
+            placeholder="e.g. Hetzner, AWS, Oracle Cloud"
+            defaultValue={build?.hostingProvider}
           />
+        ) : null}
+        <div
+          className={`grid grid-cols-1 gap-4 ${isHost ? "sm:grid-cols-2" : ""}`}
+        >
+          {isHost ? (
+            <Field
+              label="Monthly price (USD)"
+              name="monthlyPriceUsd"
+              type="number"
+              step="0.01"
+              min="0"
+              placeholder="e.g. 49.99"
+              defaultValue={build?.monthlyPriceUsd ?? undefined}
+            />
+          ) : null}
           <NetworkSpeedField
             speed={build?.networkSpeed}
             unit={build?.networkSpeedUnit}
@@ -204,15 +437,26 @@ export default function BuildFormFields({ build }: { build?: BuildRecord }) {
           placeholder="e.g. AMD Ryzen 9 5950X"
           defaultValue={build?.cpuModel}
         />
-        <Field
-          label="CPU cores"
-          name="cpuCores"
-          type="number"
-          min="1"
-          placeholder="16"
-          defaultValue={build?.cpuCores ?? undefined}
-        />
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <Field
+            label="CPU cores"
+            name="cpuCores"
+            type="number"
+            min="1"
+            placeholder="16"
+            defaultValue={build?.cpuCores ?? undefined}
+          />
+          <Field
+            label="Threads"
+            name="cpuThreads"
+            type="number"
+            min="1"
+            placeholder="32"
+            hint="Optional. Logical threads, not cores."
+            defaultValue={build?.cpuThreads ?? undefined}
+          />
+        </div>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           <Field
             label="Memory (GB)"
             name="memoryGb"
@@ -228,24 +472,18 @@ export default function BuildFormFields({ build }: { build?: BuildRecord }) {
             placeholder="Optional"
             defaultValue={build?.memoryType}
           />
-        </div>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Field
-            label="Disk (GB)"
-            name="diskGb"
+            label="RAM speed (MHz)"
+            name="memorySpeedMhz"
             type="number"
             min="1"
-            placeholder="512"
-            defaultValue={build?.diskGb ?? undefined}
-          />
-          <SelectField
-            label="Disk type"
-            name="diskType"
-            options={DISK_TYPES}
-            placeholder="Select disk type"
-            defaultValue={build?.diskType}
+            placeholder="e.g. 3200"
+            hint="Optional."
+            defaultValue={build?.memorySpeedMhz ?? undefined}
           />
         </div>
+        <DiskFields disks={build?.disks} />
+        <SwapFields swaps={build?.swaps} />
       </fieldset>
 
       <fieldset className="flex flex-col gap-4">

@@ -3,16 +3,17 @@ import {
   MEMORY_TYPES,
   NETWORK_UNITS,
   DEFAULT_NETWORK_UNIT,
+  HOST_TYPES,
+  DEFAULT_HOST_TYPE,
+  SWAP_KINDS,
   type NewBuildRecord,
 } from "@/lib/types";
 
-// Security limits
-export const MAX_TEXT = 120; // max length for short text fields
-export const MAX_NOTES = 1000; // max length for the notes field
+export const MAX_TEXT = 120;
+export const MAX_NOTES = 1000;
 
 function cleanString(value: FormDataEntryValue | null, maxLen: number): string {
   if (value == null) return "";
-  // Reject non-string entries (e.g. files) and strip control chars.
   if (typeof value !== "string") return "";
   return value
     .replace(/[\u0000-\u001f\u007f]/g, " ")
@@ -34,16 +35,42 @@ function toNumber(
   return n;
 }
 
-function fromWhitelist(
+function fromWhitelist<T extends string>(
   value: FormDataEntryValue | null,
-  allowed: readonly string[]
-): string {
+  allowed: readonly T[]
+): T | "" {
   if (typeof value !== "string") return "";
-  return allowed.includes(value) ? value : "";
+  return (allowed as readonly string[]).includes(value) ? (value as T) : "";
 }
 
-// Parses and sanitizes a build submission. Returns null when the required
-// fields (ROM name + build time) are missing or out of range.
+type RowValues = {
+  count: number | null;
+  sizeGb: number | null;
+  kind: string;
+};
+
+function parseRows(
+  formData: FormData,
+  prefix: string,
+  allowed: readonly string[]
+): RowValues[] {
+  const counts = formData.getAll(`${prefix}Count`);
+  const sizes = formData.getAll(`${prefix}SizeGb`);
+  const kinds = formData.getAll(`${prefix}Kind`);
+
+  const rows: RowValues[] = [];
+  for (let i = 0; i < sizes.length; i += 1) {
+    const row: RowValues = {
+      count: toNumber(counts[i] ?? null, { min: 1, max: 64 }),
+      sizeGb: toNumber(sizes[i] ?? null, { min: 1, max: 1_000_000 }),
+      kind: fromWhitelist(kinds[i] ?? null, allowed),
+    };
+    if (row.count === null && row.sizeGb === null && row.kind === "") continue;
+    rows.push(row);
+  }
+  return rows;
+}
+
 export function parseBuildForm(formData: FormData): NewBuildRecord | null {
   const romName = cleanString(formData.get("romName"), MAX_TEXT);
   const buildMinutes = toNumber(formData.get("buildMinutes"), {
@@ -53,6 +80,10 @@ export function parseBuildForm(formData: FormData): NewBuildRecord | null {
 
   if (romName === "" || buildMinutes === null) return null;
 
+  const hostType =
+    fromWhitelist(formData.get("hostType"), HOST_TYPES) || DEFAULT_HOST_TYPE;
+  const isLocal = hostType === "local";
+
   return {
     romName,
     romVersion: cleanString(formData.get("romVersion"), MAX_TEXT),
@@ -60,11 +91,16 @@ export function parseBuildForm(formData: FormData): NewBuildRecord | null {
       min: 1,
       max: 100,
     }),
-    hostingProvider: cleanString(formData.get("hostingProvider"), MAX_TEXT),
-    monthlyPriceUsd: toNumber(formData.get("monthlyPriceUsd"), {
-      min: 0,
-      max: 1_000_000,
-    }),
+    hostType,
+    hostingProvider: isLocal
+      ? ""
+      : cleanString(formData.get("hostingProvider"), MAX_TEXT),
+    monthlyPriceUsd: isLocal
+      ? null
+      : toNumber(formData.get("monthlyPriceUsd"), {
+          min: 0,
+          max: 1_000_000,
+        }),
     networkSpeed: toNumber(formData.get("networkSpeed"), {
       min: 0,
       max: 1_000_000,
@@ -74,10 +110,20 @@ export function parseBuildForm(formData: FormData): NewBuildRecord | null {
       DEFAULT_NETWORK_UNIT,
     cpuModel: cleanString(formData.get("cpuModel"), MAX_TEXT),
     cpuCores: toNumber(formData.get("cpuCores"), { min: 1, max: 4096 }),
+    cpuThreads: toNumber(formData.get("cpuThreads"), { min: 1, max: 8192 }),
     memoryGb: toNumber(formData.get("memoryGb"), { min: 1, max: 1_048_576 }),
     memoryType: fromWhitelist(formData.get("memoryType"), MEMORY_TYPES),
-    diskGb: toNumber(formData.get("diskGb"), { min: 1, max: 1_048_576 }),
-    diskType: fromWhitelist(formData.get("diskType"), DISK_TYPES),
+    memorySpeedMhz: toNumber(formData.get("memorySpeedMhz"), {
+      min: 1,
+      max: 100_000,
+    }),
+    disks: parseRows(formData, "disk", DISK_TYPES).map(
+      ({ count, sizeGb, kind }) => ({ count, sizeGb, type: kind })
+    ),
+    swaps: parseRows(formData, "swap", SWAP_KINDS).map(({ sizeGb, kind }) => ({
+      sizeGb,
+      kind,
+    })),
     buildMinutes,
     dirtyBuildMinutes: toNumber(formData.get("dirtyBuildMinutes"), {
       min: 1,

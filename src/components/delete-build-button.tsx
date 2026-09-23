@@ -1,7 +1,5 @@
 "use client";
 
-// Small client wrapper so deleting asks for confirmation first; the actual
-// removal still happens in the server action.
 export default function DeleteBuildButton({
   label = "Delete",
   className,

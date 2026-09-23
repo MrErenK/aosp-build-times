@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { adminDeleteBuild, adminUpdateBuild } from "@/lib/admin-actions";
@@ -5,12 +6,14 @@ import { isAdmin } from "@/lib/admin-auth";
 import { getBuild } from "@/lib/db";
 import BuildFormFields from "@/components/build-form-fields";
 import DeleteBuildButton from "@/components/delete-build-button";
+import FlashMessage from "@/components/flash-message";
+import { SITE } from "@/lib/site";
 
 const ERROR_MESSAGES: Record<string, string> = {
   missing: "Please provide at least the ROM name and the clean build time.",
 };
 
-export const metadata = { title: "Edit entry - ROM Build Bench" };
+export const metadata: Metadata = { title: `Edit entry - ${SITE.name}` };
 
 export default async function AdminEditPage({
   params,
@@ -44,9 +47,7 @@ export default async function AdminEditPage({
       </div>
 
       {errorMessage ? (
-        <div className="animate-fade-in-up mb-6 rounded-md border bg-card px-4 py-3 text-sm">
-          {errorMessage}
-        </div>
+        <FlashMessage message={errorMessage} param="error" />
       ) : null}
 
       <form

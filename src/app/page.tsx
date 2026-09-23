@@ -1,6 +1,13 @@
 import Link from "next/link";
 import { getBuilds } from "@/lib/db";
-import { formatNetworkSpeed, type BuildRecord } from "@/lib/types";
+import {
+  formatDisks,
+  formatHost,
+  formatMemory,
+  formatNetworkSpeed,
+  formatSwaps,
+  type BuildRecord,
+} from "@/lib/types";
 import SubmittedToast from "@/components/submitted-toast";
 
 function formatDuration(minutes: number): string {
@@ -24,12 +31,10 @@ function BuildRow({ build }: { build: BuildRecord }) {
   const specs = [
     build.cpuModel,
     build.cpuCores ? `${build.cpuCores} cores` : null,
-    build.memoryGb
-      ? `${build.memoryGb} GB${build.memoryType ? ` ${build.memoryType}` : ""} RAM`
-      : null,
-    build.diskGb
-      ? `${build.diskGb} GB${build.diskType ? ` ${build.diskType}` : ""}`
-      : build.diskType || null,
+    build.cpuThreads ? `${build.cpuThreads} threads` : null,
+    formatMemory(build) || null,
+    formatDisks(build.disks) || null,
+    formatSwaps(build.swaps) || null,
     network ? `${network} network` : null,
   ]
     .filter(Boolean)
@@ -61,7 +66,7 @@ function BuildRow({ build }: { build: BuildRecord }) {
         </div>
         <div className="mt-2 flex flex-wrap gap-2 text-xs text-muted">
           <span className="rounded-full border px-2 py-0.5">
-            {build.hostingProvider || "Unknown host"}
+            {formatHost(build)}
           </span>
           <span className="rounded-full border px-2 py-0.5">
             {build.monthlyPriceUsd !== null
@@ -118,7 +123,7 @@ export default async function Home({ searchParams }: PageProps<"/">) {
       : 0;
 
   return (
-    <div className="mx-auto w-full max-w-5xl px-6 py-12">
+    <div className="w-full px-6 py-12 lg:px-8">
       {justSubmitted ? <SubmittedToast /> : null}
 
       <section className="mb-10 animate-fade-in-up">

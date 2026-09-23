@@ -2,15 +2,10 @@
 
 import { useEffect, useState } from "react";
 
-// Visibility starts as `true` because the server only renders this component
-// when `?submitted=1` is present. The effect just strips the query param and
-// arms the auto-hide timer.
 export default function SubmittedToast() {
   const [visible, setVisible] = useState(true);
 
   useEffect(() => {
-    // Remove the query param so the message does not persist on refresh
-    // or back-navigation.
     const params = new URLSearchParams(window.location.search);
     params.delete("submitted");
     const query = params.toString();
@@ -36,7 +31,7 @@ export default function SubmittedToast() {
         className="animate-toast-in pointer-events-auto flex items-center gap-3 rounded-md border bg-card px-4 py-3 text-sm shadow-sm"
       >
         <span className="inline-block h-2 w-2 rounded-full bg-foreground" />
-        Thanks - your build was added to the database.
+        Thanks! Your build has been added to the database.
         <button
           type="button"
           onClick={() => setVisible(false)}
