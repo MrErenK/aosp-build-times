@@ -53,7 +53,7 @@ export default async function SubmitPage({
           </button>
           <Link
             href="/"
-            className="h-10 rounded-md border px-5 text-sm font-medium leading-10 transition-colors hover:bg-card"
+            className="h-10 rounded-md border px-5 text-sm font-medium leading-10 transition-colors hover:bg-foreground/5"
           >
             Cancel
           </Link>

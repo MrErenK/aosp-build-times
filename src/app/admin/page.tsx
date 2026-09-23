@@ -10,6 +10,7 @@ import {
   formatMemory,
   formatNetworkSpeed,
   formatPrice,
+  formatRepo,
   formatSwaps,
   type BuildRecord,
 } from "@/lib/types";
@@ -37,6 +38,8 @@ function summary(build: BuildRecord): string {
       formatMemory(build) || null,
       formatDisks(build.disks) || null,
       formatSwaps(build.swaps) || null,
+      build.raidStatus || null,
+      formatRepo(build) || null,
       formatHost(build),
       formatPrice(build) || null,
       formatNetworkSpeed(build),
@@ -69,7 +72,7 @@ export default async function AdminPage({ searchParams }: PageProps<"/admin">) {
         <form action={adminLogout}>
           <button
             type="submit"
-            className="h-10 rounded-md border px-4 text-sm font-medium transition-colors hover:bg-card"
+            className="h-10 rounded-md border px-4 text-sm font-medium transition-colors hover:bg-foreground/5"
           >
             Sign out
           </button>
@@ -121,13 +124,13 @@ export default async function AdminPage({ searchParams }: PageProps<"/admin">) {
               <div className="flex items-center gap-2">
                 <Link
                   href={`/admin/${build.id}`}
-                  className="h-9 rounded-md border px-3 text-sm font-medium leading-9 transition-colors hover:bg-background"
+                  className="h-9 rounded-md border px-3 text-sm font-medium leading-9 transition-colors hover:bg-foreground/5"
                 >
                   Edit
                 </Link>
                 <form action={adminDeleteBuild}>
                   <input type="hidden" name="id" value={build.id} />
-                  <DeleteBuildButton className="h-9 rounded-md border px-3 text-sm font-medium transition-colors hover:bg-background" />
+                  <DeleteBuildButton className="h-9 rounded-md border px-3 text-sm font-medium transition-colors hover:bg-foreground/5" />
                 </form>
               </div>
             </div>

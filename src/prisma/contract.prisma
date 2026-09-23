@@ -19,6 +19,9 @@ model Build {
   romVersion     String
   androidVersion Float?
 
+  repoSyncMinutes Float?
+  repoSyncMode    String
+
   hostType         String
   hostingProvider  String
   priceUsd         Float?
@@ -34,6 +37,7 @@ model Build {
   memorySpeedMhz Float?
   disks          Disk[]
   swaps          Swap[]
+  raidStatus     String
 
   buildMinutes      Float
   dirtyBuildMinutes Float?

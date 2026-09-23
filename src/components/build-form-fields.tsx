@@ -8,6 +8,8 @@ import {
   DEFAULT_NETWORK_UNIT,
   DEFAULT_HOST_TYPE,
   SWAP_KINDS,
+  REPO_SYNC_MODES,
+  RAID_MODES,
   PRICE_PERIODS,
   PRICE_PERIOD_LABELS,
   DEFAULT_PRICE_PERIOD,
@@ -226,7 +228,7 @@ function HostTypeSwitch({
               className={`cursor-pointer rounded px-3 py-1.5 text-center text-sm transition-colors ${
                 selected
                   ? "bg-foreground font-medium text-background"
-                  : "text-muted hover:bg-card hover:text-foreground"
+                  : "text-muted hover:bg-foreground/5 hover:text-foreground"
               }`}
             >
               <input
@@ -349,7 +351,7 @@ function RowList({
             { key: nextKey.current++, values: Array<string | null>(fields.length).fill(null) },
           ])
         }
-        className="h-10 w-fit rounded-md border px-4 text-sm font-medium transition-colors hover:bg-background"
+        className="h-10 w-fit rounded-md border px-4 text-sm font-medium transition-colors hover:bg-foreground/5"
       >
         {addLabel}
       </button>
@@ -443,6 +445,25 @@ export default function BuildFormFields({ build }: { build?: BuildRecord }) {
             defaultValue={build?.androidVersion ?? undefined}
           />
         </div>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <Field
+            label="Repo sync time (minutes)"
+            name="repoSyncMinutes"
+            type="number"
+            min="1"
+            placeholder="e.g. 12"
+            hint="Optional. How long repo sync took to pull the source tree."
+            defaultValue={build?.repoSyncMinutes ?? undefined}
+          />
+          <SelectField
+            label="Source sync mode"
+            name="repoSyncMode"
+            options={REPO_SYNC_MODES}
+            placeholder="Optional"
+            hint="Shallow init skips the full history."
+            defaultValue={build?.repoSyncMode}
+          />
+        </div>
       </fieldset>
 
       <fieldset className="flex flex-col gap-4">
@@ -523,6 +544,14 @@ export default function BuildFormFields({ build }: { build?: BuildRecord }) {
           />
         </div>
         <DiskFields disks={build?.disks} />
+        <SelectField
+          label="Disk RAID"
+          name="raidStatus"
+          options={RAID_MODES}
+          placeholder="Optional"
+          hint="Optional. Leave blank if you didn't check, or pick None for a single disk or JBOD."
+          defaultValue={build?.raidStatus}
+        />
         <SwapFields swaps={build?.swaps} />
       </fieldset>
 

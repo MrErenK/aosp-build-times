@@ -49,8 +49,8 @@ export default function SiteHeader() {
                 aria-current={active ? "page" : undefined}
                 className={`rounded-md px-2.5 py-1.5 transition-colors sm:px-3 ${
                   active
-                    ? "bg-card font-medium text-foreground"
-                    : "text-muted hover:bg-card hover:text-foreground"
+                    ? "bg-foreground/10 font-medium text-foreground"
+                    : "text-muted hover:bg-foreground/5 hover:text-foreground"
                 }`}
               >
                 {item.label}
@@ -65,7 +65,7 @@ export default function SiteHeader() {
             target="_blank"
             rel="noreferrer noopener"
             aria-label="GitHub repository"
-            className="flex h-9 w-9 items-center justify-center rounded-md text-muted transition-colors hover:bg-card hover:text-foreground"
+            className="flex h-9 w-9 items-center justify-center rounded-md text-muted transition-colors hover:bg-foreground/5 hover:text-foreground"
           >
             <GithubIcon className="h-4 w-4" />
           </a>

@@ -66,7 +66,7 @@ export default async function AdminEditPage({
           </button>
           <Link
             href="/admin"
-            className="h-10 rounded-md border px-5 text-sm font-medium leading-10 transition-colors hover:bg-card"
+            className="h-10 rounded-md border px-5 text-sm font-medium leading-10 transition-colors hover:bg-foreground/5"
           >
             Cancel
           </Link>
@@ -77,7 +77,7 @@ export default async function AdminEditPage({
         <input type="hidden" name="id" value={build.id} />
         <DeleteBuildButton
           label="Delete this entry"
-          className="h-10 rounded-md border px-5 text-sm font-medium transition-colors hover:bg-card"
+          className="h-10 rounded-md border px-5 text-sm font-medium transition-colors hover:bg-foreground/5"
         />
       </form>
     </div>

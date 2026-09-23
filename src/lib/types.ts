@@ -18,6 +18,17 @@ export const LOCAL_HOST_LABEL = "Local machine";
 export const SWAP_KINDS = ["Swapfile", "ZRAM"] as const;
 export type SwapKind = (typeof SWAP_KINDS)[number];
 
+export const REPO_SYNC_MODES = ["Full history", "Shallow (--depth=1)"] as const;
+
+export const RAID_MODES = [
+  "None",
+  "RAID 0",
+  "RAID 1",
+  "RAID 5",
+  "RAID 6",
+  "RAID 10",
+] as const;
+
 export const PRICE_PERIODS = ["hour", "day", "month", "year"] as const;
 export type PricePeriod = (typeof PRICE_PERIODS)[number];
 export const DEFAULT_PRICE_PERIOD: PricePeriod = "month";
@@ -67,6 +78,9 @@ export type BuildRecord = {
   romVersion: string;
   androidVersion: number | null;
 
+  repoSyncMinutes: number | null;
+  repoSyncMode: string;
+
   hostType: HostType;
   hostingProvider: string;
   priceUsd: number | null;
@@ -82,6 +96,7 @@ export type BuildRecord = {
   memorySpeedMhz: number | null;
   disks: DiskSpec[];
   swaps: SwapSpec[];
+  raidStatus: string;
 
   buildMinutes: number;
   dirtyBuildMinutes: number | null;
@@ -143,6 +158,14 @@ export function formatSwaps(swaps: SwapSpec[]): string {
 export function formatHost(build: BuildRecord): string {
   if (build.hostType === "local") return LOCAL_HOST_LABEL;
   return build.hostingProvider || "Unknown host";
+}
+
+export function formatRepo(
+  build: Pick<BuildRecord, "repoSyncMinutes" | "repoSyncMode">
+): string {
+  const minutes =
+    build.repoSyncMinutes === null ? "" : `${build.repoSyncMinutes} min sync`;
+  return [minutes, build.repoSyncMode].filter(Boolean).join(" · ");
 }
 
 export function formatDuration(minutes: number): string {

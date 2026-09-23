@@ -6,6 +6,8 @@ import {
   HOST_TYPES,
   DEFAULT_HOST_TYPE,
   SWAP_KINDS,
+  REPO_SYNC_MODES,
+  RAID_MODES,
   PRICE_PERIODS,
   DEFAULT_PRICE_PERIOD,
   type NewBuildRecord,
@@ -93,6 +95,11 @@ export function parseBuildForm(formData: FormData): NewBuildRecord | null {
       min: 1,
       max: 100,
     }),
+    repoSyncMinutes: toNumber(formData.get("repoSyncMinutes"), {
+      min: 1,
+      max: 100_000,
+    }),
+    repoSyncMode: fromWhitelist(formData.get("repoSyncMode"), REPO_SYNC_MODES),
     hostType,
     hostingProvider: isLocal
       ? ""
@@ -129,6 +136,7 @@ export function parseBuildForm(formData: FormData): NewBuildRecord | null {
       sizeGb,
       kind,
     })),
+    raidStatus: fromWhitelist(formData.get("raidStatus"), RAID_MODES),
     buildMinutes,
     dirtyBuildMinutes: toNumber(formData.get("dirtyBuildMinutes"), {
       min: 1,

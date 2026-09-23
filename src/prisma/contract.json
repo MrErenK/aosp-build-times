@@ -177,6 +177,27 @@
                   "kind": "scalar"
                 }
               },
+              "raidStatus": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "repoSyncMinutes": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/float8@1",
+                  "kind": "scalar"
+                }
+              },
+              "repoSyncMode": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
               "romName": {
                 "nullable": false,
                 "type": {
@@ -271,6 +292,15 @@
                 },
                 "priceUsd": {
                   "column": "priceUsd"
+                },
+                "raidStatus": {
+                  "column": "raidStatus"
+                },
+                "repoSyncMinutes": {
+                  "column": "repoSyncMinutes"
+                },
+                "repoSyncMode": {
+                  "column": "repoSyncMode"
                 },
                 "romName": {
                   "column": "romName"
@@ -461,6 +491,21 @@
                   "nativeType": "float8",
                   "nullable": true
                 },
+                "raidStatus": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "repoSyncMinutes": {
+                  "codecId": "pg/float8@1",
+                  "nativeType": "float8",
+                  "nullable": true
+                },
+                "repoSyncMode": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
                 "romName": {
                   "codecId": "pg/text@1",
                   "nativeType": "text",
@@ -492,7 +537,7 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "b37ada1cc61d39f7f316ec32cba4835ed38d3147512e66fab68a6b601ebdd9b2"
+    "storageHash": "a77b3687b9dc2b8b6757714c4c9a74abcb90331a534b8b68cac88b1cde0de170"
   },
   "capabilities": {
     "postgres": {

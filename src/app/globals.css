@@ -15,7 +15,7 @@
   --foreground: #ffffff;
   --muted: #888888;
   --border: #333333;
-  --card: #0a0a0a;
+  --card: #000000;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -25,7 +25,7 @@
     --foreground: #ffffff;
     --muted: #888888;
     --border: #333333;
-    --card: #0a0a0a;
+    --card: #000000;
   }
 }
 

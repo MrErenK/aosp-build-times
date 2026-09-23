@@ -1,122 +1,28 @@
 import Link from "next/link";
-import { getBuilds } from "@/lib/db";
-import {
-  formatDisks,
-  formatDuration,
-  formatHost,
-  formatMemory,
-  formatNetworkSpeed,
-  formatPrice,
-  formatSwaps,
-  type BuildRecord,
-} from "@/lib/types";
-import SubmittedToast from "@/components/submitted-toast";
+import { getBuildsPage, getBuildStats } from "@/lib/db";
+import { formatDuration } from "@/lib/types";
+import BuildList from "@/components/build-list";
+import Pagination from "@/components/pagination";
+import SearchField from "@/components/search-field";
 import StatCard from "@/components/stat-card";
-
-function BuildRow({ build }: { build: BuildRecord }) {
-  const network = formatNetworkSpeed(build);
-  const specs = [
-    build.cpuModel,
-    build.cpuCores ? `${build.cpuCores} cores` : null,
-    build.cpuThreads ? `${build.cpuThreads} threads` : null,
-    formatMemory(build) || null,
-    formatDisks(build.disks) || null,
-    formatSwaps(build.swaps) || null,
-    network ? `${network} network` : null,
-  ]
-    .filter(Boolean)
-    .join(" · ");
-
-  const hasKernel =
-    build.kernelBuildMinutes !== null ||
-    build.kernelDirtyBuildMinutes !== null ||
-    build.kernelName !== "";
-
-  return (
-    <Link
-      href={`/builds/${build.id}`}
-      className="group grid grid-cols-1 gap-4 border-b px-4 py-5 transition-colors duration-150 last:border-b-0 hover:bg-background sm:grid-cols-[1fr_auto] sm:items-center sm:px-5"
-    >
-      <div className="min-w-0">
-        <div className="flex flex-wrap items-baseline gap-x-2">
-          <span className="font-medium">{build.romName}</span>
-          <span className="text-sm text-muted">
-            {[
-              build.romVersion,
-              build.androidVersion !== null
-                ? `Android ${build.androidVersion}`
-                : null,
-            ]
-              .filter(Boolean)
-              .join(" · ")}
-          </span>
-        </div>
-        <div className="mt-1 text-sm break-words text-muted">
-          {specs || "No hardware details provided"}
-        </div>
-        <div className="mt-2 flex flex-wrap gap-2 text-xs text-muted">
-          <span className="rounded-full border px-2 py-0.5">
-            {formatHost(build)}
-          </span>
-          <span className="rounded-full border px-2 py-0.5">
-            {formatPrice(build) || "Price n/a"}
-          </span>
-          {hasKernel ? (
-            <span className="rounded-full border px-2 py-0.5">
-              {`Kernel${build.kernelName ? ` ${build.kernelName}` : ""}${
-                build.kernelBuildMinutes !== null
-                  ? `: ${formatDuration(build.kernelBuildMinutes)}`
-                  : ""
-              }${
-                build.kernelDirtyBuildMinutes !== null
-                  ? ` / ${formatDuration(build.kernelDirtyBuildMinutes)} dirty`
-                  : ""
-              }`}
-            </span>
-          ) : null}
-        </div>
-      </div>
-      <div className="flex items-end justify-between gap-4 border-t pt-3 sm:block sm:border-0 sm:pt-0 sm:text-right">
-        <div>
-          <div className="font-mono text-lg font-semibold">
-            {formatDuration(build.buildMinutes)}
-          </div>
-          <div className="text-xs text-muted">clean build</div>
-          {build.dirtyBuildMinutes !== null ? (
-            <div className="mt-1 font-mono text-sm text-muted">
-              {formatDuration(build.dirtyBuildMinutes)}{" "}
-              <span className="font-sans text-xs">dirty</span>
-            </div>
-          ) : null}
-        </div>
-        <span
-          aria-hidden="true"
-          className="text-muted transition-transform duration-150 group-hover:translate-x-0.5 sm:hidden"
-        >
-          →
-        </span>
-      </div>
-    </Link>
-  );
-}
+import SubmittedToast from "@/components/submitted-toast";
 
 export default async function Home({ searchParams }: PageProps<"/">) {
-  const [builds, params] = await Promise.all([getBuilds(), searchParams]);
+  const params = await searchParams;
+  const rawQuery = params?.q;
+  const query = (Array.isArray(rawQuery) ? rawQuery[0] : rawQuery ?? "").trim();
+  const rawPage = params?.page;
+  const requestedPage = Number.parseInt(
+    Array.isArray(rawPage) ? rawPage[0] : rawPage ?? "1",
+    10
+  );
+  const page = Number.isNaN(requestedPage) ? 1 : requestedPage;
   const justSubmitted = params?.submitted === "1";
 
-  const avgMinutes =
-    builds.length > 0
-      ? Math.round(
-          builds.reduce((sum, b) => sum + b.buildMinutes, 0) / builds.length
-        )
-      : 0;
-  const fastest =
-    builds.length > 0
-      ? builds.reduce(
-          (min, b) => (b.buildMinutes < min ? b.buildMinutes : min),
-          builds[0].buildMinutes
-        )
-      : 0;
+  const [stats, result] = await Promise.all([
+    getBuildStats(query),
+    getBuildsPage({ query, page }),
+  ]);
 
   return (
     <div className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
@@ -134,25 +40,38 @@ export default async function Home({ searchParams }: PageProps<"/">) {
       </section>
 
       <section className="stagger mb-10 grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <StatCard label="Builds submitted" value={String(builds.length)} />
+        <StatCard
+          label={query ? "Matching builds" : "Builds submitted"}
+          value={String(stats.count)}
+        />
         <StatCard
           label="Average clean build"
-          value={builds.length ? formatDuration(avgMinutes) : "-"}
+          value={
+            stats.avgMinutes !== null
+              ? formatDuration(Math.round(stats.avgMinutes))
+              : "-"
+          }
         />
         <StatCard
           label="Fastest build"
-          value={builds.length ? formatDuration(fastest) : "-"}
+          value={
+            stats.fastestMinutes !== null
+              ? formatDuration(stats.fastestMinutes)
+              : "-"
+          }
         />
       </section>
 
       <section className="animate-fade-in-up">
-        <div className="mb-4 flex flex-wrap items-end justify-between gap-2">
+        <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
           <div>
             <h2 className="text-lg font-semibold tracking-tight">
-              Recent builds
+              {query ? "Search results" : "Recent builds"}
             </h2>
             <p className="mt-1 text-sm text-muted">
-              Select a build for the full spec sheet.
+              {query
+                ? `${stats.count} build${stats.count === 1 ? "" : "s"} matching “${query}”.`
+                : "Select a build for the full spec sheet."}
             </p>
           </div>
           <Link
@@ -163,23 +82,16 @@ export default async function Home({ searchParams }: PageProps<"/">) {
           </Link>
         </div>
 
-        {builds.length === 0 ? (
-          <div className="rounded-lg border bg-card px-6 py-16 text-center">
-            <p className="text-muted">No builds yet.</p>
-            <Link
-              href="/submit"
-              className="mt-4 inline-block rounded-md bg-foreground px-4 py-2 text-sm font-medium text-background transition-opacity hover:opacity-90"
-            >
-              Submit the first build
-            </Link>
-          </div>
-        ) : (
-          <div className="stagger overflow-hidden rounded-lg border bg-card">
-            {builds.map((build) => (
-              <BuildRow key={build.id} build={build} />
-            ))}
-          </div>
-        )}
+        <div className="mb-4">
+          <SearchField
+            placeholder="Search ROM, CPU, host, kernel…"
+            initialValue={query}
+          />
+        </div>
+
+        <BuildList builds={result.builds} query={query} />
+
+        <Pagination page={result.page} pageCount={result.pageCount} query={query} />
       </section>
     </div>
   );

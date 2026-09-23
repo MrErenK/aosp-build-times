@@ -12,6 +12,7 @@ import {
   formatMonthlyPrice,
   formatNetworkSpeed,
   formatPrice,
+  formatRepo,
   formatSwaps,
 } from "@/lib/types";
 import { SITE } from "@/lib/site";
@@ -25,7 +26,7 @@ function DetailSection({ title, rows }: { title: string; rows: Row[] }) {
   const filled = rows.filter((row) => row.value !== "");
 
   return (
-    <section className="animate-fade-in-up">
+    <section className="animate-fade-in-up border-t py-8 first:border-t-0 first:pt-0">
       <h2 className="text-xs font-semibold uppercase tracking-wider text-muted">
         {title}
       </h2>
@@ -96,7 +97,7 @@ export default async function BuildDetailPage(props: PageProps<"/builds/[id]">) 
   ].filter((stat) => stat !== null);
 
   return (
-    <div className="mx-auto w-full max-w-4xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
+    <div className="mx-auto w-full max-w-3xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
       <div className="animate-fade-in-up">
         <Link
           href="/"
@@ -125,20 +126,39 @@ export default async function BuildDetailPage(props: PageProps<"/builds/[id]">) 
         {admin ? (
           <Link
             href={`/admin/${build.id}`}
-            className="h-9 shrink-0 rounded-md border px-3 text-sm font-medium leading-9 transition-colors hover:bg-card"
+            className="h-9 shrink-0 rounded-md border px-3 text-sm font-medium leading-9 transition-colors hover:bg-foreground/5"
           >
             Edit entry
           </Link>
         ) : null}
       </div>
 
-      <div className="stagger mb-10 grid grid-cols-2 gap-4">
+      <div className="stagger mb-10 flex flex-wrap gap-4">
         {stats.map((stat) => (
-          <StatCard key={stat.label} label={stat.label} value={stat.value} />
+          <StatCard
+            key={stat.label}
+            label={stat.label}
+            value={stat.value}
+            className="flex-1 basis-40 sm:basis-56"
+          />
         ))}
       </div>
 
-      <div className="grid gap-8 lg:grid-cols-2">
+      <div className="grid">
+        <DetailSection
+          title="ROM & source"
+          rows={[
+            {
+              label: "Android version",
+              value:
+                build.androidVersion === null
+                  ? ""
+                  : String(build.androidVersion),
+            },
+            { label: "Repo sync", value: formatRepo(build) },
+          ]}
+        />
+
         <DetailSection
           title="Hardware"
           rows={[
@@ -153,6 +173,7 @@ export default async function BuildDetailPage(props: PageProps<"/builds/[id]">) 
             },
             { label: "Memory", value: formatMemory(build) },
             { label: "Disks", value: formatDisks(build.disks) },
+            { label: "Disk RAID", value: build.raidStatus },
             { label: "Swap & zram", value: formatSwaps(build.swaps) },
           ]}
         />
@@ -194,7 +215,7 @@ export default async function BuildDetailPage(props: PageProps<"/builds/[id]">) 
         />
 
         {build.notes ? (
-          <section className="animate-fade-in-up lg:col-span-2">
+          <section className="animate-fade-in-up border-t py-8">
             <h2 className="text-xs font-semibold uppercase tracking-wider text-muted">
               Notes
             </h2>
