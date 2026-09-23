@@ -5,6 +5,7 @@ import { adminDeleteBuild, adminLogout } from "@/lib/admin-actions";
 import { isAdmin } from "@/lib/admin-auth";
 import { getBuilds } from "@/lib/db";
 import {
+  formatDate,
   formatDisks,
   formatHost,
   formatMemory,
@@ -118,7 +119,7 @@ export default async function AdminPage({ searchParams }: PageProps<"/admin">) {
                     ? ` · kernel ${build.kernelBuildMinutes} min`
                     : ""}
                   {" · "}
-                  {new Date(build.createdAt).toLocaleDateString()}
+                  {formatDate(build.createdAt)}
                 </div>
               </div>
               <div className="flex items-center gap-2">

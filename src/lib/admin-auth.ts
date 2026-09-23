@@ -1,11 +1,8 @@
 import { createHmac, timingSafeEqual } from "crypto";
 import { cookies } from "next/headers";
 
-// Minimal password-gated admin session. The password lives in the
-// ADMIN_PASSWORD env var; the cookie is an HMAC-signed expiry stamp so it
-// cannot be forged and rotating the password invalidates old sessions.
 const COOKIE_NAME = "admin_session";
-const SESSION_MS = 12 * 60 * 60 * 1000; // 12 hours
+const SESSION_MS = 12 * 60 * 60 * 1000;
 
 function adminPassword(): string {
   return process.env.ADMIN_PASSWORD ?? "";

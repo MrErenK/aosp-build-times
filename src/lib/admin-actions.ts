@@ -23,8 +23,6 @@ async function requireAdmin(): Promise<void> {
 
 export async function adminLogin(formData: FormData): Promise<void> {
   sweepExpired();
-  // Login attempts are limited globally: this is a single-admin panel, so
-  // there is no legitimate case for a burst of attempts.
   const { ok } = rateLimit("admin-login", LOGIN_LIMIT, LOGIN_WINDOW_MS);
   if (!ok) {
     redirect("/admin/login?error=rate");

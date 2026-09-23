@@ -4,6 +4,7 @@ import { notFound, redirect } from "next/navigation";
 import { adminDeleteBuild, adminUpdateBuild } from "@/lib/admin-actions";
 import { isAdmin } from "@/lib/admin-auth";
 import { getBuild } from "@/lib/db";
+import { formatDateTime } from "@/lib/types";
 import BuildFormFields from "@/components/build-form-fields";
 import DeleteBuildButton from "@/components/delete-build-button";
 import FlashMessage from "@/components/flash-message";
@@ -42,7 +43,7 @@ export default async function AdminEditPage({
           Edit entry
         </h1>
         <p className="mt-2 text-sm text-muted">
-          Submitted {new Date(build.createdAt).toLocaleString()}
+          Submitted {formatDateTime(build.createdAt)}
         </p>
       </div>
 

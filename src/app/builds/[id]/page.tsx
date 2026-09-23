@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { isAdmin } from "@/lib/admin-auth";
 import { getBuild } from "@/lib/db";
 import {
+  formatDate,
   formatDisks,
   formatDuration,
   formatHost,
@@ -117,7 +118,7 @@ export default async function BuildDetailPage(props: PageProps<"/builds/[id]">) 
               build.androidVersion !== null
                 ? `Android ${build.androidVersion}`
                 : null,
-              `Submitted ${new Date(build.createdAt).toLocaleDateString()}`,
+              `Submitted ${formatDate(build.createdAt)}`,
             ]
               .filter(Boolean)
               .join(" · ")}

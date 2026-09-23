@@ -4,8 +4,6 @@ export type DiskType = (typeof DISK_TYPES)[number];
 export const MEMORY_TYPES = ["DDR3", "DDR4", "DDR5"] as const;
 export type MemoryType = (typeof MEMORY_TYPES)[number];
 
-// Networks are quoted in different units depending on the host, and some
-// people report throughput (MB/s) instead of port speed (Mbit/s).
 export const NETWORK_UNITS = ["Mbit/s", "Gbit/s", "MB/s", "GB/s"] as const;
 export type NetworkUnit = (typeof NETWORK_UNITS)[number];
 export const DEFAULT_NETWORK_UNIT: NetworkUnit = "Gbit/s";
@@ -50,8 +48,6 @@ const PRICE_PERIOD_SUFFIX: Record<PricePeriod, string> = {
   year: "/yr",
 };
 
-// Month lengths averaged out (730 hours, 365/12 days), so hourly, daily and
-// yearly prices can be compared.
 const MONTHS_PER_PERIOD: Record<PricePeriod, number> = {
   hour: 730,
   day: 365 / 12,
@@ -166,6 +162,24 @@ export function formatRepo(
   const minutes =
     build.repoSyncMinutes === null ? "" : `${build.repoSyncMinutes} min sync`;
   return [minutes, build.repoSyncMode].filter(Boolean).join(" · ");
+}
+
+export function formatDate(iso: string): string {
+  return new Date(iso).toLocaleDateString("en-GB", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
+}
+
+export function formatDateTime(iso: string): string {
+  return new Date(iso).toLocaleString("en-GB", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 }
 
 export function formatDuration(minutes: number): string {
