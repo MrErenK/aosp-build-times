@@ -60,7 +60,7 @@ export function SpecList({
       {items.map(({ term, value }) => (
         <div
           key={term}
-          className="flex items-baseline justify-between gap-3 border-b border-line-subtle py-1"
+          className="grid grid-cols-[auto_1fr] items-baseline gap-x-3 border-b border-line-subtle py-1"
         >
           <dt className="text-muted">{term}</dt>
           <dd className="text-right wrap-break-word">{value}</dd>

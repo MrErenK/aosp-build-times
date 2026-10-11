@@ -54,20 +54,22 @@ function BuildRow({ build }: { build: BuildRecord }) {
         {build.androidVersion === null ? ABSENT : build.androidVersion}
       </TD>
       <TD className="text-muted">{host}</TD>
-      <TD className="text-muted">{cpu(build) || ABSENT}</TD>
-      <TD className="text-muted">{formatMemory(build) || ABSENT}</TD>
-      <TD className="text-muted">
+      <TD className="hidden text-muted md:table-cell">{cpu(build) || ABSENT}</TD>
+      <TD className="hidden text-muted md:table-cell">
+        {formatMemory(build) || ABSENT}
+      </TD>
+      <TD className="hidden text-muted md:table-cell">
         {formatDisks(build.disks) || formatSwaps(build.swaps) || ABSENT}
       </TD>
       <TDNumeric className="text-foreground">
         {formatDuration(build.buildMinutes)}
       </TDNumeric>
-      <TDNumeric>
+      <TDNumeric className="hidden md:table-cell">
         {build.dirtyBuildMinutes === null
           ? ABSENT
           : formatDuration(build.dirtyBuildMinutes)}
       </TDNumeric>
-      <TD className="text-muted">{kernelText || ABSENT}</TD>
+      <TD className="hidden text-muted md:table-cell">{kernelText || ABSENT}</TD>
       <TD>
         <BracketLink
           href={`/builds/${build.id}`}
@@ -116,18 +118,18 @@ export default function BuildList({
   }
 
   return (
-    <Table className="min-w-5xl">
+    <Table className="md:min-w-5xl">
       <THead>
         <TR>
           <TH className="w-44">ROM</TH>
           <TH className="w-16 text-right">ANDROID</TH>
           <TH className="w-56">HOST</TH>
-          <TH className="w-56">CPU</TH>
-          <TH className="w-44">MEMORY</TH>
-          <TH className="w-44">DISKS</TH>
+          <TH className="hidden w-56 md:table-cell">CPU</TH>
+          <TH className="hidden w-44 md:table-cell">MEMORY</TH>
+          <TH className="hidden w-44 md:table-cell">DISKS</TH>
           <TH className="w-20 text-right">CLEAN</TH>
-          <TH className="w-20 text-right">DIRTY</TH>
-          <TH className="w-40">KERNEL</TH>
+          <TH className="hidden w-20 text-right md:table-cell">DIRTY</TH>
+          <TH className="hidden w-40 md:table-cell">KERNEL</TH>
           <TH className="w-20"> </TH>
         </TR>
       </THead>

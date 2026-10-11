@@ -114,8 +114,8 @@ export default async function AdminPage({ searchParams }: PageProps<"/admin">) {
               <TR>
                 <TH className="w-48">ROM</TH>
                 <TH>DETAILS</TH>
-                <TH className="w-56">TIMES</TH>
-                <TH className="w-32">SUBMITTED</TH>
+                <TH className="hidden w-56 md:table-cell">TIMES</TH>
+                <TH className="hidden w-32 md:table-cell">SUBMITTED</TH>
                 <TH className="w-40">ACTIONS</TH>
               </TR>
             </THead>
@@ -137,8 +137,10 @@ export default async function AdminPage({ searchParams }: PageProps<"/admin">) {
                     ) : null}
                   </TD>
                   <TD className="text-muted">{summary(build)}</TD>
-                  <TD className="tabular-nums">{times(build)}</TD>
-                  <TD className="tabular-nums text-muted">
+                  <TD className="hidden tabular-nums md:table-cell">
+                    {times(build)}
+                  </TD>
+                  <TD className="hidden tabular-nums text-muted md:table-cell">
                     {formatDate(build.createdAt)}
                   </TD>
                   <TD>
