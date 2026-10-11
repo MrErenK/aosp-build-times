@@ -2,6 +2,9 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { adminLogin } from "@/lib/admin-actions";
 import { isAdmin, isAdminConfigured } from "@/lib/admin-auth";
+import { Button } from "@/components/button";
+import { Field, Input } from "@/components/input";
+import { Panel } from "@/components/panel";
 import { SITE } from "@/lib/site";
 
 const ERROR_MESSAGES: Record<string, string> = {
@@ -9,7 +12,10 @@ const ERROR_MESSAGES: Record<string, string> = {
   rate: "Too many attempts. Please wait a few minutes and try again.",
 };
 
-export const metadata: Metadata = { title: `Admin login - ${SITE.name}` };
+export const metadata: Metadata = {
+  title: `Admin login - ${SITE.name}`,
+  robots: { index: false, follow: false },
+};
 
 export default async function AdminLoginPage({
   searchParams,
@@ -21,49 +27,49 @@ export default async function AdminLoginPage({
   const errorMessage = ERROR_MESSAGES[errorKey];
 
   return (
-    <div className="mx-auto w-full max-w-sm px-4 py-16 sm:px-6 sm:py-20">
-      <div className="animate-fade-in-up rounded-lg border bg-card p-6">
-        <h1 className="text-xl font-semibold tracking-tight">Admin</h1>
-        <p className="mt-2 text-sm text-muted">
-          Enter the admin password to edit or remove submitted builds.
-        </p>
+    <div className="mx-auto w-full max-w-sm px-2 py-10 sm:px-3 sm:py-12">
+      <p className="text-xs text-muted">CONTROL / ACCESS</p>
+      <h1 className="mt-1 text-lg font-bold uppercase tracking-wider">admin</h1>
+      <p className="mt-1 text-xs text-muted-strong">
+        Enter the admin password to edit or remove submitted builds.
+      </p>
 
+      <Panel title="sign in" className="mt-3">
         {!isAdminConfigured() ? (
-          <p className="mt-4 rounded-md border px-3 py-2 text-sm text-muted">
+          <p className="text-xs text-muted">
             No admin password is set. Add{" "}
-            <code className="font-mono">ADMIN_PASSWORD</code> to your{" "}
-            <code className="font-mono">.env.local</code> and restart the
+            <code className="bg-surface px-1">ADMIN_PASSWORD</code> to your{" "}
+            <code className="bg-surface px-1">.env.local</code> and restart the
             server.
           </p>
         ) : (
           <>
             {errorMessage ? (
-              <p className="mt-4 rounded-md border px-3 py-2 text-sm">
+              <p className="mb-2 flex items-center gap-1.5 border border-line bg-surface px-2 py-1.5 text-xs">
+                <span aria-hidden className="font-bold">
+                  [!]
+                </span>
                 {errorMessage}
               </p>
             ) : null}
 
-            <form action={adminLogin} className="mt-5 flex flex-col gap-3">
-              <label className="flex flex-col gap-1.5">
-                <span className="text-sm font-medium">Password</span>
-                <input
+            <form action={adminLogin} className="flex flex-col gap-2">
+              <Field label="Password" htmlFor="password">
+                <Input
+                  id="password"
                   name="password"
                   type="password"
                   autoComplete="current-password"
                   required
-                  className="h-10 rounded-md border bg-background px-3 text-base outline-none transition-colors focus:border-foreground sm:text-sm"
                 />
-              </label>
-              <button
-                type="submit"
-                className="h-10 rounded-md bg-foreground px-5 text-sm font-medium text-background transition-opacity hover:opacity-90"
-              >
-                Sign in
-              </button>
+              </Field>
+              <Button type="submit" variant="solid" className="w-fit">
+                sign in
+              </Button>
             </form>
           </>
         )}
-      </div>
+      </Panel>
     </div>
   );
 }

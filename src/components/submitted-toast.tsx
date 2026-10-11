@@ -2,6 +2,11 @@
 
 import { useEffect, useState } from "react";
 
+const slot =
+  "inline-flex items-center px-1 py-1 text-xs font-bold uppercase tracking-wider " +
+  "transition-colors duration-75 hover:bg-background hover:text-foreground " +
+  "focus-visible:outline-2 focus-visible:outline-offset-1";
+
 export default function SubmittedToast() {
   const [visible, setVisible] = useState(true);
 
@@ -12,7 +17,7 @@ export default function SubmittedToast() {
     window.history.replaceState(
       null,
       "",
-      window.location.pathname + (query ? `?${query}` : "")
+      window.location.pathname + (query ? `?${query}` : ""),
     );
   }, []);
 
@@ -25,20 +30,22 @@ export default function SubmittedToast() {
   if (!visible) return null;
 
   return (
-    <div className="pointer-events-none fixed inset-x-0 top-28 z-40 flex justify-center px-4 sm:top-20 sm:px-6">
+    <div className="pointer-events-none fixed inset-x-0 top-14 z-40 flex justify-center px-2 sm:px-3">
       <div
         role="status"
-        className="animate-toast-in pointer-events-auto flex items-center gap-3 rounded-md border bg-card px-4 py-3 text-sm shadow-sm"
+        className="pointer-events-auto flex items-center gap-3 border border-line bg-invert px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-invert-foreground"
       >
-        <span className="inline-block h-2 w-2 rounded-full bg-foreground" />
-        Thanks! Your build has been added to the database.
+        <span aria-hidden>[ok]</span>
+        <span>build submitted</span>
         <button
           type="button"
           onClick={() => setVisible(false)}
-          className="ml-2 text-muted transition-colors hover:text-foreground"
+          className={slot}
           aria-label="Dismiss"
         >
-          ✕
+          <span aria-hidden>[</span>
+          x
+          <span aria-hidden>]</span>
         </button>
       </div>
     </div>

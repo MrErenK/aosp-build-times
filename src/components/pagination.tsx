@@ -1,10 +1,42 @@
 import Link from "next/link";
+import { cn } from "@/lib/cn";
 
-const buttonClass =
-  "h-9 rounded-md border px-3 text-sm font-medium leading-9 transition-colors hover:bg-foreground/5";
+const slot =
+  "inline-flex items-center px-1 py-1 text-xs font-bold uppercase tracking-wider";
 
-const disabledClass =
-  "h-9 rounded-md border px-3 text-sm font-medium leading-9 text-muted opacity-50";
+function PageSlot({
+  href,
+  children,
+}: {
+  href: string | null;
+  children: React.ReactNode;
+}) {
+  if (!href) {
+    return (
+      <span className={cn(slot, "text-muted")}>
+        <span aria-hidden>[</span>
+        {children}
+        <span aria-hidden>]</span>
+      </span>
+    );
+  }
+
+  return (
+    <Link
+      href={href}
+      prefetch={false}
+      className={cn(
+        slot,
+        "transition-colors duration-75 invert-hover",
+        "focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-foreground",
+      )}
+    >
+      <span aria-hidden>[</span>
+      {children}
+      <span aria-hidden>]</span>
+    </Link>
+  );
+}
 
 export default function Pagination({
   page,
@@ -27,33 +59,24 @@ export default function Pagination({
     return qs ? `${basePath}?${qs}` : basePath;
   }
 
-  const previous = page - 1;
-  const next = page + 1;
-
   return (
     <nav
       aria-label="Pagination"
-      className="mt-6 flex flex-wrap items-center justify-between gap-4"
+      className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-t border-line px-2 py-2 sm:px-3"
     >
-      {previous >= 1 ? (
-        <Link href={href(previous)} className={buttonClass}>
-          ← Newer
-        </Link>
-      ) : (
-        <span className={disabledClass}>← Newer</span>
-      )}
+      <p className="text-xs text-muted">
+        <span aria-hidden>:: </span>
+        <span>page </span>
+        <span className="tabular-nums text-foreground">{page}</span>
+        <span className="tabular-nums"> / {pageCount}</span>
+      </p>
 
-      <span className="text-sm text-muted">
-        Page {page} of {pageCount}
-      </span>
-
-      {next <= pageCount ? (
-        <Link href={href(next)} className={buttonClass}>
-          Older →
-        </Link>
-      ) : (
-        <span className={disabledClass}>Older →</span>
-      )}
+      <div className="flex items-center gap-1">
+        <PageSlot href={page > 1 ? href(1) : null}>first</PageSlot>
+        <PageSlot href={page > 1 ? href(page - 1) : null}>prev</PageSlot>
+        <PageSlot href={page < pageCount ? href(page + 1) : null}>next</PageSlot>
+        <PageSlot href={page < pageCount ? href(pageCount) : null}>last</PageSlot>
+      </div>
     </nav>
   );
 }

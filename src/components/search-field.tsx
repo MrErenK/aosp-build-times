@@ -2,29 +2,18 @@
 
 import { useEffect, useRef, useState, useTransition } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { Input } from "@/components/input";
 
 const DEBOUNCE_MS = 300;
 
-function SearchIcon() {
-  return (
-    <svg
-      viewBox="0 0 16 16"
-      aria-hidden="true"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.5"
-      strokeLinecap="round"
-      className="h-4 w-4 shrink-0"
-    >
-      <circle cx="7" cy="7" r="4.5" />
-      <path d="M10.5 10.5 14 14" />
-    </svg>
-  );
-}
+const slot =
+  "inline-flex items-center px-1 py-1 text-xs font-bold uppercase tracking-wider " +
+  "transition-colors duration-75 invert-hover " +
+  "focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-foreground";
 
 export default function SearchField({
   param = "q",
-  placeholder = "Search builds",
+  placeholder = "search builds",
   initialValue = "",
 }: {
   param?: string;
@@ -66,28 +55,44 @@ export default function SearchField({
   }, [value, current, param, pathname, router, searchParams]);
 
   return (
-    <div className="flex h-10 items-center gap-2 rounded-md border bg-background px-3 text-muted transition-colors focus-within:border-foreground">
-      <SearchIcon />
-      <input
-        type="text"
-        value={value}
-        onChange={(event) => setValue(event.target.value)}
-        placeholder={placeholder}
-        aria-label={placeholder}
-        enterKeyHint="search"
-        className="h-full min-w-0 flex-1 bg-transparent text-base text-foreground outline-none placeholder:text-muted sm:text-sm"
-      />
-      {pending ? <span className="shrink-0 text-xs">Searching…</span> : null}
-      {value ? (
-        <button
-          type="button"
-          onClick={() => setValue("")}
-          aria-label="Clear search"
-          className="shrink-0 transition-colors hover:text-foreground"
+    <div className="flex flex-col gap-1">
+      <div className="flex items-baseline justify-between gap-2">
+        <label
+          htmlFor="search"
+          className="text-xs uppercase tracking-wider text-muted"
         >
-          ✕
-        </button>
-      ) : null}
+          search
+        </label>
+        <span aria-live="polite" className="text-xs text-muted">
+          {pending ? "[updating]" : ""}
+        </span>
+      </div>
+      <div className="flex items-center gap-1">
+        <Input
+          id="search"
+          type="text"
+          value={value}
+          onChange={(event) => setValue(event.target.value)}
+          placeholder={placeholder}
+          aria-label={placeholder}
+          enterKeyHint="search"
+          autoComplete="off"
+          spellCheck={false}
+          className="flex-1"
+        />
+        {value ? (
+          <button
+            type="button"
+            onClick={() => setValue("")}
+            aria-label="Clear search"
+            className={slot}
+          >
+            <span aria-hidden>[</span>
+            clear
+            <span aria-hidden>]</span>
+          </button>
+        ) : null}
+      </div>
     </div>
   );
 }

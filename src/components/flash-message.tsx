@@ -2,6 +2,11 @@
 
 import { useEffect, useState } from "react";
 
+const slot =
+  "inline-flex items-center px-1 py-1 text-xs font-bold uppercase tracking-wider " +
+  "transition-colors duration-75 invert-hover " +
+  "focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-foreground";
+
 export default function FlashMessage({
   message,
   param,
@@ -26,15 +31,25 @@ export default function FlashMessage({
   if (!visible) return null;
 
   return (
-    <div className="animate-fade-in-up mb-6 flex items-start justify-between gap-4 rounded-md border bg-card px-4 py-3 text-sm">
-      <span>{message}</span>
+    <div
+      role="status"
+      className="mb-4 flex items-center justify-between gap-3 border border-line bg-surface px-2 py-1.5 text-xs"
+    >
+      <span>
+        <span aria-hidden className="font-bold">
+          [i]{" "}
+        </span>
+        {message}
+      </span>
       <button
         type="button"
         onClick={() => setVisible(false)}
-        className="text-muted transition-colors hover:text-foreground"
+        className={slot}
         aria-label="Dismiss"
       >
-        ✕
+        <span aria-hidden>[</span>
+        x
+        <span aria-hidden>]</span>
       </button>
     </div>
   );

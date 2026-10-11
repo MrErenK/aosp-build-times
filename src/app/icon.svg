@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 16 16">
+  <style>
+    @media (prefers-color-scheme: dark) {
+      #ground { fill: #000000; }
+      #frame { stroke: #ffffff; }
+      #mark { stroke: #ffffff; }
+    }
+  </style>
+  <rect id="ground" width="16" height="16" fill="#ffffff" />
+  <rect
+    id="frame"
+    x="0.5"
+    y="0.5"
+    width="15"
+    height="15"
+    fill="none"
+    stroke="#000000"
+    stroke-width="1"
+  />
+  <path
+    id="mark"
+    fill="none"
+    stroke="#000000"
+    stroke-width="1.6"
+    stroke-linecap="square"
+    stroke-linejoin="miter"
+    d="M8 3 L4 13 M8 3 L12 13 M5.4 9.6 H10.6"
+  />
+</svg>

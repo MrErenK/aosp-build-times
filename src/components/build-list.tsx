@@ -1,4 +1,3 @@
-import Link from "next/link";
 import {
   formatDisks,
   formatDuration,
@@ -6,96 +5,78 @@ import {
   formatMemory,
   formatNetworkSpeed,
   formatPrice,
-  formatRepo,
   formatSwaps,
   type BuildRecord,
 } from "@/lib/types";
+import { BracketLink } from "@/components/link";
+import { Table, TBody, TD, TDNumeric, TH, THead, TR } from "@/components/table";
+
+const ABSENT = "--";
+
+function cpu(build: BuildRecord): string {
+  const parts = [
+    build.cpuModel,
+    build.cpuCores ? `${build.cpuCores}c` : null,
+    build.cpuThreads ? `${build.cpuThreads}t` : null,
+  ].filter(Boolean);
+  return parts.join(" · ");
+}
+
+function kernel(build: BuildRecord): string {
+  const parts = [
+    build.kernelName || null,
+    build.kernelBuildMinutes !== null
+      ? formatDuration(build.kernelBuildMinutes)
+      : null,
+    build.kernelDirtyBuildMinutes !== null
+      ? `${formatDuration(build.kernelDirtyBuildMinutes)} dirty`
+      : null,
+  ].filter(Boolean);
+  return parts.join(" · ");
+}
 
 function BuildRow({ build }: { build: BuildRecord }) {
   const network = formatNetworkSpeed(build);
-  const specs = [
-    build.cpuModel,
-    build.cpuCores ? `${build.cpuCores} cores` : null,
-    build.cpuThreads ? `${build.cpuThreads} threads` : null,
-    formatMemory(build) || null,
-    formatDisks(build.disks) || null,
-    formatSwaps(build.swaps) || null,
-    formatRepo(build) || null,
-    network ? `${network} network` : null,
-  ]
+  const host = [formatHost(build), formatPrice(build) || null, network || null]
     .filter(Boolean)
     .join(" · ");
-
-  const hasKernel =
-    build.kernelBuildMinutes !== null ||
-    build.kernelDirtyBuildMinutes !== null ||
-    build.kernelName !== "";
+  const kernelText = kernel(build);
 
   return (
-    <Link
-      href={`/builds/${build.id}`}
-      className="group grid grid-cols-1 gap-4 border-b px-4 py-5 transition-colors duration-150 last:border-b-0 hover:bg-foreground/5 sm:grid-cols-[1fr_auto] sm:items-center sm:px-5"
-    >
-      <div className="min-w-0">
-        <div className="flex flex-wrap items-baseline gap-x-2">
-          <span className="font-medium">{build.romName}</span>
-          <span className="text-sm text-muted">
-            {[
-              build.romVersion,
-              build.androidVersion !== null
-                ? `Android ${build.androidVersion}`
-                : null,
-            ]
-              .filter(Boolean)
-              .join(" · ")}
-          </span>
-        </div>
-        <div className="mt-1 text-sm wrap-break-word text-muted">
-          {specs || "No hardware details provided"}
-        </div>
-        <div className="mt-2 flex flex-wrap gap-2 text-xs text-muted">
-          <span className="rounded-full border px-2 py-0.5">
-            {formatHost(build)}
-          </span>
-          <span className="rounded-full border px-2 py-0.5">
-            {formatPrice(build) || "Price n/a"}
-          </span>
-          {hasKernel ? (
-            <span className="rounded-full border px-2 py-0.5">
-              {`Kernel${build.kernelName ? ` ${build.kernelName}` : ""}${
-                build.kernelBuildMinutes !== null
-                  ? `: ${formatDuration(build.kernelBuildMinutes)}`
-                  : ""
-              }${
-                build.kernelDirtyBuildMinutes !== null
-                  ? ` / ${formatDuration(build.kernelDirtyBuildMinutes)} dirty`
-                  : ""
-              }`}
-            </span>
-          ) : null}
-        </div>
-      </div>
-      <div className="flex items-end justify-between gap-4 border-t pt-3 sm:block sm:border-0 sm:pt-0 sm:text-right">
-        <div>
-          <div className="font-mono text-lg font-semibold">
-            {formatDuration(build.buildMinutes)}
-          </div>
-          <div className="text-xs text-muted">clean build</div>
-          {build.dirtyBuildMinutes !== null ? (
-            <div className="mt-1 font-mono text-sm text-muted">
-              {formatDuration(build.dirtyBuildMinutes)}{" "}
-              <span className="font-sans text-xs">dirty</span>
-            </div>
-          ) : null}
-        </div>
-        <span
-          aria-hidden="true"
-          className="text-muted transition-transform duration-150 group-hover:translate-x-0.5 sm:hidden"
+    <TR hover className="relative">
+      <TD className="font-bold" title={build.id}>
+        {build.romName || "(no name)"}
+        {build.romVersion ? (
+          <span className="font-normal text-muted"> {build.romVersion}</span>
+        ) : null}
+      </TD>
+      <TD className="tabular-nums">
+        {build.androidVersion === null ? ABSENT : build.androidVersion}
+      </TD>
+      <TD className="text-muted">{host}</TD>
+      <TD className="text-muted">{cpu(build) || ABSENT}</TD>
+      <TD className="text-muted">{formatMemory(build) || ABSENT}</TD>
+      <TD className="text-muted">
+        {formatDisks(build.disks) || formatSwaps(build.swaps) || ABSENT}
+      </TD>
+      <TDNumeric className="text-foreground">
+        {formatDuration(build.buildMinutes)}
+      </TDNumeric>
+      <TDNumeric>
+        {build.dirtyBuildMinutes === null
+          ? ABSENT
+          : formatDuration(build.dirtyBuildMinutes)}
+      </TDNumeric>
+      <TD className="text-muted">{kernelText || ABSENT}</TD>
+      <TD>
+        <BracketLink
+          href={`/builds/${build.id}`}
+          className="after:absolute after:inset-0 after:content-['']"
         >
-          →
-        </span>
-      </div>
-    </Link>
+          details
+        </BracketLink>
+      </TD>
+    </TR>
   );
 }
 
@@ -108,29 +89,53 @@ export default function BuildList({
 }) {
   if (builds.length === 0) {
     return (
-      <div className="rounded-lg border bg-card px-6 py-16 text-center">
-        {query ? (
-          <p className="text-muted">No builds match “{query}”.</p>
-        ) : (
-          <>
-            <p className="text-muted">No builds yet.</p>
-            <Link
-              href="/submit"
-              className="mt-4 inline-block rounded-md bg-foreground px-4 py-2 text-sm font-medium text-background transition-opacity hover:opacity-90"
-            >
-              Submit the first build
-            </Link>
-          </>
-        )}
-      </div>
+      <Table>
+        <TBody>
+          <TR>
+            <TD className="text-muted">
+              {query ? (
+                <>
+                  NO MATCHES FOR &ldquo;{query}&rdquo; --{" "}
+                  <BracketLink href="/" className="-my-1">
+                    reset
+                  </BracketLink>
+                </>
+              ) : (
+                <>
+                  NOTHING STORED --{" "}
+                  <BracketLink href="/submit" className="-my-1">
+                    submit
+                  </BracketLink>
+                </>
+              )}
+            </TD>
+          </TR>
+        </TBody>
+      </Table>
     );
   }
 
   return (
-    <div className="stagger overflow-hidden rounded-lg border bg-card">
-      {builds.map((build) => (
-        <BuildRow key={build.id} build={build} />
-      ))}
-    </div>
+    <Table className="min-w-5xl">
+      <THead>
+        <TR>
+          <TH className="w-44">ROM</TH>
+          <TH className="w-16 text-right">ANDROID</TH>
+          <TH className="w-56">HOST</TH>
+          <TH className="w-56">CPU</TH>
+          <TH className="w-44">MEMORY</TH>
+          <TH className="w-44">DISKS</TH>
+          <TH className="w-20 text-right">CLEAN</TH>
+          <TH className="w-20 text-right">DIRTY</TH>
+          <TH className="w-40">KERNEL</TH>
+          <TH className="w-20"> </TH>
+        </TR>
+      </THead>
+      <TBody>
+        {builds.map((build) => (
+          <BuildRow key={build.id} build={build} />
+        ))}
+      </TBody>
+    </Table>
   );
 }

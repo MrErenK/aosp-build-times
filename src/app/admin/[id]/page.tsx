@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { adminDeleteBuild, adminUpdateBuild } from "@/lib/admin-actions";
 import { isAdmin } from "@/lib/admin-auth";
@@ -8,13 +7,18 @@ import { formatDateTime } from "@/lib/types";
 import BuildFormFields from "@/components/build-form-fields";
 import DeleteBuildButton from "@/components/delete-build-button";
 import FlashMessage from "@/components/flash-message";
+import { Button, LinkButton } from "@/components/button";
+import { NavLink } from "@/components/link";
 import { SITE } from "@/lib/site";
 
 const ERROR_MESSAGES: Record<string, string> = {
   missing: "Please provide at least the ROM name and the clean build time.",
 };
 
-export const metadata: Metadata = { title: `Edit entry - ${SITE.name}` };
+export const metadata: Metadata = {
+  title: `Edit entry - ${SITE.name}`,
+  robots: { index: false, follow: false },
+};
 
 export default async function AdminEditPage({
   params,
@@ -31,18 +35,15 @@ export default async function AdminEditPage({
   const errorMessage = ERROR_MESSAGES[errorKey];
 
   return (
-    <div className="mx-auto w-full max-w-2xl px-4 py-8 sm:px-6 sm:py-12">
-      <div className="animate-fade-in-up mb-8">
-        <Link
-          href="/admin"
-          className="text-sm text-muted underline-offset-4 hover:text-foreground hover:underline"
-        >
-          ← Back to admin
-        </Link>
-        <h1 className="mt-4 text-3xl font-semibold tracking-tight">
-          Edit entry
+    <div className="mx-auto w-full max-w-3xl px-2 py-3 sm:px-3 sm:py-4">
+      <NavLink href="/admin">back to admin</NavLink>
+
+      <div className="mt-3 border-b border-line pb-3">
+        <p className="text-xs text-muted">CONTROL / EDIT</p>
+        <h1 className="mt-1 text-lg font-bold uppercase tracking-wider">
+          edit entry
         </h1>
-        <p className="mt-2 text-sm text-muted">
+        <p className="mt-1 text-xs text-muted">
           Submitted {formatDateTime(build.createdAt)}
         </p>
       </div>
@@ -51,35 +52,21 @@ export default async function AdminEditPage({
         <FlashMessage message={errorMessage} param="error" />
       ) : null}
 
-      <form
-        action={adminUpdateBuild}
-        className="animate-fade-in-up flex flex-col gap-8"
-      >
+      <form action={adminUpdateBuild} className="mt-3 flex flex-col gap-4">
         <input type="hidden" name="id" value={build.id} />
         <BuildFormFields build={build} />
 
-        <div className="flex flex-wrap items-center gap-3">
-          <button
-            type="submit"
-            className="h-10 rounded-md bg-foreground px-5 text-sm font-medium text-background transition-opacity hover:opacity-90"
-          >
-            Save changes
-          </button>
-          <Link
-            href="/admin"
-            className="h-10 rounded-md border px-5 text-sm font-medium leading-10 transition-colors hover:bg-foreground/5"
-          >
-            Cancel
-          </Link>
+        <div className="flex flex-wrap items-center gap-2">
+          <Button type="submit" variant="solid">
+            save changes
+          </Button>
+          <LinkButton href="/admin">cancel</LinkButton>
         </div>
       </form>
 
-      <form action={adminDeleteBuild} className="mt-10 border-t pt-6">
+      <form action={adminDeleteBuild} className="mt-6 border-t border-line pt-4">
         <input type="hidden" name="id" value={build.id} />
-        <DeleteBuildButton
-          label="Delete this entry"
-          className="h-10 rounded-md border px-5 text-sm font-medium transition-colors hover:bg-foreground/5"
-        />
+        <DeleteBuildButton label="delete this entry" size="md" />
       </form>
     </div>
   );

@@ -1,3 +1,5 @@
+import { cn } from "@/lib/cn";
+
 export default function StatCard({
   label,
   value,
@@ -9,12 +11,12 @@ export default function StatCard({
 }) {
   return (
     <div
-      className={`rounded-lg border bg-card p-4 transition-transform duration-200 hover:-translate-y-0.5 sm:p-5 ${className}`}
+      className={cn("border border-line bg-surface px-2.5 py-2 sm:px-2 sm:py-1.5", className)}
     >
-      <div className="text-xl font-semibold tracking-tight sm:text-2xl">
-        {value}
+      <div className="text-lg font-bold tabular-nums">{value}</div>
+      <div className="mt-0.5 text-xs uppercase tracking-wider text-muted">
+        {label}
       </div>
-      <div className="mt-1 text-sm text-muted">{label}</div>
     </div>
   );
 }

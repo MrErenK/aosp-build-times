@@ -1,4 +1,4 @@
-import Link from "next/link";
+import type { Metadata } from "next";
 import { getBuildsPage, getBuildStats } from "@/lib/db";
 import { formatDuration } from "@/lib/types";
 import BuildList from "@/components/build-list";
@@ -6,6 +6,32 @@ import Pagination from "@/components/pagination";
 import SearchField from "@/components/search-field";
 import StatCard from "@/components/stat-card";
 import SubmittedToast from "@/components/submitted-toast";
+import { NavLink } from "@/components/link";
+import { JsonLd } from "@/components/json-ld";
+import { buildsJsonLd, pageMetadata, siteTitle } from "@/lib/seo";
+import { SITE } from "@/lib/site";
+
+export async function generateMetadata({
+  searchParams,
+}: PageProps<"/">): Promise<Metadata> {
+  const params = await searchParams;
+  const raw = params?.q;
+  const query = (Array.isArray(raw) ? raw[0] : raw ?? "").trim();
+
+  if (query) {
+    return pageMetadata({
+      title: siteTitle(`Search: ${query}`),
+      description: `Recorded Android ROM build times matching “${query}”.`,
+      robots: { index: false, follow: true },
+    });
+  }
+
+  return pageMetadata({
+    title: SITE.name,
+    description: SITE.description,
+    canonical: "/",
+  });
+}
 
 export default async function Home({ searchParams }: PageProps<"/">) {
   const params = await searchParams;
@@ -24,75 +50,81 @@ export default async function Home({ searchParams }: PageProps<"/">) {
     getBuildsPage({ query, page }),
   ]);
 
+  const matched = stats.count === 1 ? "match" : "matches";
+  const jsonLd = buildsJsonLd({ builds: result.builds, website: !query });
+
   return (
-    <div className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
+    <div>
       {justSubmitted ? <SubmittedToast /> : null}
 
-      <section className="mb-10 animate-fade-in-up">
-        <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">
-          How long does a ROM build take?
-        </h1>
-        <p className="mt-3 max-w-2xl text-muted">
-          A community-sourced database of Android ROM build times across
-          different server specs and hosting providers. Share your setup to help
-          others pick the right hardware.
+      <div className="border-b border-line px-2 py-3 sm:px-3 sm:py-4">
+        <p className="text-xs text-muted">
+          COMMUNITY DATABASE / ANDROID ROM BUILD TIMES
         </p>
-      </section>
+        <h1 className="mt-1 text-lg font-bold uppercase tracking-wider">
+          how long does a rom build take?
+        </h1>
+        <p className="mt-1 max-w-2xl text-xs text-muted-strong">
+          A community-sourced database of Android ROM build times across different
+          server specs and hosting providers. Share your setup to help others pick
+          the right hardware.
+        </p>
+      </div>
 
-      <section className="stagger mb-10 grid grid-cols-1 gap-4 sm:grid-cols-3">
+      <div className="grid grid-cols-1 gap-2 border-b border-line px-2 py-3 sm:grid-cols-3 sm:px-3">
         <StatCard
-          label={query ? "Matching builds" : "Builds submitted"}
+          label={query ? "matching builds" : "builds submitted"}
           value={String(stats.count)}
         />
         <StatCard
-          label="Average clean build"
+          label="average clean build"
           value={
             stats.avgMinutes !== null
               ? formatDuration(Math.round(stats.avgMinutes))
-              : "-"
+              : "--"
           }
         />
         <StatCard
-          label="Fastest build"
+          label="fastest build"
           value={
             stats.fastestMinutes !== null
               ? formatDuration(stats.fastestMinutes)
-              : "-"
+              : "--"
           }
         />
-      </section>
+      </div>
 
-      <section className="animate-fade-in-up">
-        <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
-          <div>
-            <h2 className="text-lg font-semibold tracking-tight">
-              {query ? "Search results" : "Recent builds"}
-            </h2>
-            <p className="mt-1 text-sm text-muted">
-              {query
-                ? `${stats.count} build${stats.count === 1 ? "" : "s"} matching “${query}”.`
-                : "Select a build for the full spec sheet."}
-            </p>
-          </div>
-          <Link
-            href="/submit"
-            className="text-sm text-muted underline-offset-4 hover:text-foreground hover:underline"
-          >
-            Add yours →
-          </Link>
-        </div>
+      <div className="border-b border-line bg-surface px-2 py-2 sm:px-3">
+        <SearchField
+          placeholder="search rom, cpu, host, kernel…"
+          initialValue={query}
+        />
+      </div>
 
-        <div className="mb-4">
-          <SearchField
-            placeholder="Search ROM, CPU, host, kernel…"
-            initialValue={query}
-          />
-        </div>
+      <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 border-b border-line px-2 py-1.5 sm:px-3">
+        <h2 className="text-xs font-bold uppercase tracking-wider">
+          {query ? "search results" : "recent builds"}
+        </h2>
+        <p className="flex flex-wrap items-center gap-x-2 text-xs text-muted">
+          <span className="tabular-nums text-foreground">{stats.count}</span>
+          <span>
+            {query ? `${matched} for “${query}”` : "builds recorded"}
+          </span>
+          <NavLink href="/submit">add yours</NavLink>
+        </p>
+      </div>
 
+      <div className="px-2 py-3 sm:px-3">
         <BuildList builds={result.builds} query={query} />
+      </div>
 
-        <Pagination page={result.page} pageCount={result.pageCount} query={query} />
-      </section>
+      <Pagination
+        page={result.page}
+        pageCount={result.pageCount}
+        query={query}
+      />
+
+      {jsonLd ? <JsonLd data={jsonLd} /> : null}
     </div>
   );
 }
